@@ -65,6 +65,8 @@ secrets
 
 # Custom config files
 *.conf.custom
+settings.ini
+groups.ini
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
