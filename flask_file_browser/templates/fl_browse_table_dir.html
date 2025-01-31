@@ -76,7 +76,7 @@
     data-fdata='{{ current_path['files_json'][file] | tojson }}'
     data-filename="{{ current_path['files_name'][loop.index0] }}" 
     data-fileslug="{{ current_path['files_dl'][loop.index0] }}" 
-    data-ngslug="{{ current_path['files_ng_slug'][loop.index0] }}" 
+    
     data-filesize="{{ current_path['files_size'][loop.index0] }}"
     data-updated="{{ current_path['files_modtime'][loop.index0] }}" 
     data-bs-toggle="modal" data-bs-target="#brainModal">
@@ -110,9 +110,10 @@
           <p>Last Updated: <span id="brainModalUpdated"></span></p>
         </div>
         <div class="modal-footer">
-          <a href="#" type="button" id="brainModalNgSlug" class="btn btn-primary btn-sm" target="ngwindow">View on NG</a>
+          <!-- <a href="#" type="button" id="brainModalNgSlug" class="btn btn-primary btn-sm" target="ngwindow">View on NG</a> -->
           <a href="#" type="button" id="brainModalFileSlug" class="btn btn-primary btn-sm" target="dlwindow">Download</a>
-          <a href="#" type="button" id="brainModalFileInfo" class="btn btn-primary btn-sm" target="nginfowindow">NG Info</a>
+          <button  type="button" id="brainModalFilePath" class="btn btn-primary btn-sm" >Copy Path</button>
+          <!-- <a href="#" type="button" id="brainModalFileInfo" class="btn btn-primary btn-sm" target="nginfowindow">NG Info</a> -->
           <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
           
         </div>
@@ -157,25 +158,25 @@ brainModalEl.addEventListener('show.bs.modal', function (event) {
 
 // Neuroglancer Button and Info
 
-  var ng_btn = event.target.querySelector('#brainModalNgSlug')
-  var ng_info_btn = event.target.querySelector('#brainModalFileInfo')
-  if (fdata.files_ng_slug)
-{
+//   var ng_btn = event.target.querySelector('#brainModalNgSlug')
+//   var ng_info_btn = event.target.querySelector('#brainModalFileInfo')
+//   if (fdata.files_ng_slug)
+// {
   
-  ng_btn.setAttribute('href',fdata.files_ng_slug);
-  ng_btn.classList.remove('d-none');
+//   ng_btn.setAttribute('href',fdata.files_ng_slug);
+//   ng_btn.classList.remove('d-none');
   
-  ng_info_btn.setAttribute('href',fdata.files_ng_info);
-  ng_info_btn.classList.remove('d-none');
+//   ng_info_btn.setAttribute('href',fdata.files_ng_info);
+//   ng_info_btn.classList.remove('d-none');
   
-}
-else{
-  ng_btn.setAttribute('href',fdata.files_ng_slug)
-  ng_btn.classList.add('d-none');
+// }
+// else{
+//   ng_btn.setAttribute('href',fdata.files_ng_slug)
+//   ng_btn.classList.add('d-none');
   
-  ng_info_btn.setAttribute('href',fdata.files_ng_info);
-  ng_info_btn.classList.add('d-none');
-}  
+//   ng_info_btn.setAttribute('href',fdata.files_ng_info);
+//   ng_info_btn.classList.add('d-none');
+// }  
 
 // Download Button
 
@@ -183,15 +184,52 @@ else{
 
   if (fdata.files_dl)
   {
-  dl_btn.setAttribute('href',fdata.files_dl);
-  dl_btn.classList.remove('d-none');
-}
+    dl_btn.setAttribute('href',fdata.files_dl);
+    dl_btn.classList.remove('d-none');
+  }
   else{
-  dl_btn.setAttribute('href',fdata.files_dl);
-  dl_btn.classList.add('d-none');
+    dl_btn.setAttribute('href',fdata.files_dl);
+    dl_btn.classList.add('d-none');
   }
   
-  console.log('does target have href?',bdata.ngslug,event.target.querySelector('#brainModalNgSlug').href)
+  // var cppath = event.target.querySelector('#brainModalFilePath') 
+  const cppath = document.getElementById('brainModalFilePath');
+
+  if (fdata.files)
+  {
+    // const dynamicLink = fdata.files.
+    // const dynamicLink = fdata.files.replace("/{{ current_path['html_path_split'][0] }}", "/get_file_path"); // Replace with your dynamic URL logic
+    const parts = fdata.files.split('/').slice(3);  // Split and remove first 2 elements
+    console.log('what is parts',parts);
+    const dynamicLink = "/{{ current_path['html_path_split'][0] }}/get_file_path/" + parts.join('/');
+
+    console.log('what is newPath',dynamicLink);
+    cppath.addEventListener('click', function () {
+    // Fetch the response from the dynamic link
+    fetch(dynamicLink)
+      .then(response => response.json()) // Assuming the server returns JSON
+      .then(data => {
+        const datapath = data.file_path; // Extract the returned path from the response (adjust based on response format)
+        // Copy the datapath to clipboard
+        navigator.clipboard.writeText(datapath).then(function () {
+          alert("✔️ Path has been copied to clipboard " + '\n' + datapath);
+        }).catch(function (error) {
+          console.error("Failed to copy path:", error);
+          alert("Failed to copy path to clipboard.");
+        });
+      })
+      .catch(error => {
+        console.error("Error fetching data:", error);
+        alert("Failed to fetch the file path.");
+      });
+  });
+    cppath.classList.remove('d-none');
+  }
+  else{
+    alert("No path available to copy.");
+    cppath.classList.add('d-none');
+  }
+
 
   // event.target.querySelector('#')
   console.log('what is event.target',event.target.querySelector('#brainModalLabel'));

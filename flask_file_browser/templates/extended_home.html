@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,4 +7,21 @@
 <body>
 <h1>BROWSER</h1>
 </body>
-</html>
+</html> -->
+{% extends "base.html" %}
+
+{% block content %}
+<h1 style="font-size: 30px">{{app_name}}</h1>
+{% if app_description %}
+<p style="font-size: 20px">{{app_description}}</p>
+{% endif %}
+<div class="img-with-text">
+    {% if app_logo %}
+    <img src="{{ url_for('flask_file_browser.static', filename=app_logo) }}" alt="logo" />
+    {% endif %}
+    {% if app_motto %}
+    <p style="font-size: 30px">{{app_motto}}</p>
+    {% endif %}
+</div>
+
+{% endblock %}
