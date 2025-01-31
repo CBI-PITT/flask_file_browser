@@ -1,18 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Mar 30 15:49:10 2022
-
-@author: awatson
-"""
-
-"""
-Attempt at creating file type hooks to produce links for opening files in other
-applications like neuroglancer or napari
-
-Can be used as a filter to determine if the file has the ability to be used by
-another process
-"""
-
 import utils
 from flask import url_for
 # import neuroGlancer
@@ -68,22 +53,22 @@ def downloadable(req_path,size=None, max_sizeGB=None):
 
 
 
-def dir_as_file(req_path):
-    """
-    Some directories should be treated like files.  For instance,
-    it is not helpful to open a zarr directory in the browser,
-    but options to view in neuroglancer should be available
+# def dir_as_file(req_path):
+#     """
+#     Some directories should be treated like files.  For instance,
+#     it is not helpful to open a zarr directory in the browser,
+#     but options to view in neuroglancer should be available
     
-    Temporalilly this looks at neuroglancer support only
-    """
+#     Temporalilly this looks at neuroglancer support only
+#     """
     
-    file_types = neuroGlancer.neuroglancer_dtypes()
-    file_type_supported = utils.is_file_type(file_types, req_path)
+#     file_types = neuroGlancer.neuroglancer_dtypes()
+#     file_type_supported = utils.is_file_type(file_types, req_path)
     
-    if file_type_supported:
-        return req_path
-    else:
-        return None
+#     if file_type_supported:
+#         return req_path
+#     else:
+#         return None
     
     
     
