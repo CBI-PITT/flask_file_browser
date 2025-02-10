@@ -30,11 +30,11 @@ from flask import (
 import glob, os
 from natsort import natsorted
 import datetime
-from logger_tools import logger
+from .logger_tools import logger
 ## Project-specific imports
-import utils, auth
-import file_type_support as fts
-from utils import get_config
+from flask_file_browser import utils, auth
+from flask_file_browser import file_type_support as fts
+from .utils import get_config
 dl_size_GB = 8
 
 

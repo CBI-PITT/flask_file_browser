@@ -1,9 +1,10 @@
+import os
 import sys
-from utils import get_config
+from .utils import get_config
 from loguru import logger
 
-
-settings = get_config("settings.ini")
+working_dir = os.path.dirname(__file__)
+settings = get_config(os.path.join(working_dir, "settings.ini"))
 
 ENVIRONMENT = settings.get("app", "log_engine")
 # Logging setting

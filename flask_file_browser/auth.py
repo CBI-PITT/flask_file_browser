@@ -64,7 +64,7 @@ def setup_auth(app,extended_app):
         tuple: A tuple containing the modified Flask app and the LoginManager instance.
     """
     ## This import must remain here else circular import error
-    from routes import settings
+    from .routes import settings
     from flask_limiter import Limiter
     from flask_limiter.util import get_remote_address
     

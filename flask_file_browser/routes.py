@@ -111,14 +111,17 @@
 import os
 import flask
 from flask import request, render_template,Blueprint
-from utils import get_config,get_html_split_and_associated_file_path,split_html
-import auth
-settings = get_config('settings.ini')
+from .utils import get_config,get_html_split_and_associated_file_path,split_html
+from flask_file_browser import auth
+routes_script_folder = os.path.dirname(__file__)
+settings = get_config(os.path.join(routes_script_folder, 'settings.ini'))
 
 # extended_app.config["DEBUG"] = settings.getboolean('app','debug')
 def init_blueprint(app, settings=settings,prefix='/browser'):
-    TEMPLATE_DIR = os.path.abspath(settings.get('app','templates_location'))
-    STATIC_DIR = os.path.abspath(settings.get('app','static_location'))
+    # TEMPLATE_DIR = os.path.abspath(settings.get('app','templates_location'))
+    TEMPLATE_DIR = os.path.join(routes_script_folder, settings.get('app','templates_location'))
+    # STATIC_DIR = os.path.abspath(settings.get('app','static_location'))
+    STATIC_DIR = os.path.join(routes_script_folder, settings.get('app','static_location'))
     LOGO = settings.get('app','logo') #Relative to STATIC_DIR
     APP_NAME = settings.get('app','name')
 
@@ -135,18 +138,18 @@ def init_blueprint(app, settings=settings,prefix='/browser'):
     # Must init auth first to get login_manager
     if browser_active:
         print('Initiating auth functionality')
-        from auth import setup_auth
+        from .auth import setup_auth
         extended_app,login_manager = setup_auth(app, extended_app)
     else:
-        from auth import setup_NO_auth
+        from .auth import setup_NO_auth
         extended_app, login_manager = setup_NO_auth(app, extended_app)
 
     if browser_active:
         print('Initiating browser functionality')
-        from fs_browse import initiate_browseable
+        from .fs_browse import initiate_browseable
         extended_app = initiate_browseable(extended_app,settings)
     else:
-        from fs_browse import initiate_NOT_browseable
+        from .fs_browse import initiate_NOT_browseable
         extended_app = initiate_NOT_browseable(extended_app, settings)
 
 
