@@ -113,15 +113,20 @@ import flask
 from flask import request, render_template,Blueprint
 from .utils import get_config,get_html_split_and_associated_file_path,split_html
 from flask_file_browser import auth
+
+import importlib.resources as pkg_resources
+
 routes_script_folder = os.path.dirname(__file__)
 settings = get_config(os.path.join(routes_script_folder, 'settings.ini'))
 
 # extended_app.config["DEBUG"] = settings.getboolean('app','debug')
 def init_blueprint(app, settings=settings,prefix='/browser'):
     # TEMPLATE_DIR = os.path.abspath(settings.get('app','templates_location'))
-    TEMPLATE_DIR = os.path.join(routes_script_folder, settings.get('app','templates_location'))
+    # TEMPLATE_DIR = os.path.join(routes_script_folder, settings.get('app','templates_location'))
+    TEMPLATE_DIR = str(pkg_resources.files(__package__) / 'templates')
     # STATIC_DIR = os.path.abspath(settings.get('app','static_location'))
-    STATIC_DIR = os.path.join(routes_script_folder, settings.get('app','static_location'))
+    # STATIC_DIR = os.path.join(routes_script_folder, settings.get('app','static_location'))
+    STATIC_DIR = str(pkg_resources.files(__package__) / 'static')
     LOGO = settings.get('app','logo') #Relative to STATIC_DIR
     APP_NAME = settings.get('app','name')
 
@@ -159,7 +164,7 @@ def init_blueprint(app, settings=settings,prefix='/browser'):
         """
         Landing zone for BrainPi
         """
-        return render_template('extended_home.html',
+        return render_template('flask_file_browser/extended_home.html',
                             browser_active=browser_active,
                             user=auth.user_info(),
                             app_name=settings.get('app','name'),

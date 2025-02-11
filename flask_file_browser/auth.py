@@ -113,7 +113,7 @@ def setup_auth(app,extended_app):
                   If this is not you, please logout
                   '''.format(current_user.id))
             return redirect(url_for('flask_file_browser.profile'))
-        return render_template('login.html',
+        return render_template('flask_file_browser/login.html',
                                user=user_info(),
                                app_name=settings.get('app','name'),
                                page_name='Login',
@@ -173,7 +173,7 @@ def setup_auth(app,extended_app):
     @extended_app.route('/profile')
     @login_required
     def profile():
-        return render_template('profile.html',
+        return render_template('flask_file_browser/profile.html',
                                user=user_info(),
                                app_name=settings.get('app','name'),
                                page_name='Profile',

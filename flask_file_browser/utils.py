@@ -49,7 +49,8 @@ def split_html(req_path):
 def get_config(file='settings.ini',allow_no_value=True):
     import configparser
     # file = os.path.join(os.path.split(os.path.abspath(__file__))[0],file)
-    file = os.path.join(sys.path[0], file)
+    routes_script_folder = os.path.dirname(__file__)
+    file = os.path.join(routes_script_folder, file)
     config = configparser.ConfigParser(allow_no_value=allow_no_value)
     config.read(file)
     return config

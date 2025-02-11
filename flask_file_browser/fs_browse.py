@@ -408,7 +408,7 @@ def initiate_browseable(extended_app,settings):
         if isinstance(out,tuple) and out[0] == 'render_template':
             page_description, current_path = out[1:]
             return render_template(
-                'fl_browse_table_dir.html',
+                'flask_file_browser/fl_browse_table_dir.html',
                 current_path={**page_description, **current_path}, 
                 user=auth.user_info(),
                 gtag=settings.get('GA4', 'gtag')
