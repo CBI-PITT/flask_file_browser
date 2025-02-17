@@ -195,6 +195,20 @@ brainModalEl.addEventListener('show.bs.modal', function (event) {
   // var cppath = event.target.querySelector('#brainModalFilePath') 
   const cppath = document.getElementById('brainModalFilePath');
 
+  function copyToClipboardFallback(text) {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand("copy");
+        alert("✔️ Path has been copied to clipboard \n" + text);
+    } catch (err) {
+        alert("Failed to copy path.");
+    }
+    document.body.removeChild(textarea);
+}
+
   if (fdata.files)
   {
     // const dynamicLink = fdata.files.
@@ -207,20 +221,19 @@ brainModalEl.addEventListener('show.bs.modal', function (event) {
     cppath.addEventListener('click', function () {
     // Fetch the response from the dynamic link
     fetch(dynamicLink)
-      .then(response => response.json()) // Assuming the server returns JSON
+      .then(response => response.json()) 
       .then(data => {
-        const datapath = data.file_path; // Extract the returned path from the response (adjust based on response format)
-        // Copy the datapath to clipboard
-        navigator.clipboard.writeText(datapath).then(function () {
-          alert("✔️ Path has been copied to clipboard " + '\n' + datapath);
-        }).catch(function (error) {
-          console.error("Failed to copy path:", error);
-          alert("Failed to copy path to clipboard.");
-        });
+          if (!data.file_path) throw new Error("File path missing");
+          if (navigator.clipboard) {
+              return navigator.clipboard.writeText(data.file_path)
+                  .then(() => alert("✔️ Path has been copied to clipboard \n" + data.file_path));
+          } else {
+              copyToClipboardFallback(data.file_path);
+          }
       })
       .catch(error => {
-        console.error("Error fetching data:", error);
-        alert("Failed to fetch the file path.");
+          console.error("Failed:", error);
+          alert("Failed to fetch the file path.");
       });
   });
     cppath.classList.remove('d-none');
