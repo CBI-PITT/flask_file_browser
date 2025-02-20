@@ -112,7 +112,7 @@
         <div class="modal-footer">
           <!-- <a href="#" type="button" id="brainModalNgSlug" class="btn btn-primary btn-sm" target="ngwindow">View on NG</a> -->
           <a href="#" type="button" id="brainModalFileSlug" class="btn btn-primary btn-sm" target="dlwindow">Download</a>
-          <button  type="button" id="brainModalFilePath" class="btn btn-primary btn-sm" >Copy Path</button>
+          <button  type="button" id="brainModalFilePath" class="btn btn-primary btn-sm" >Path Info</button>
           <!-- <a href="#" type="button" id="brainModalFileInfo" class="btn btn-primary btn-sm" target="nginfowindow">NG Info</a> -->
           <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
           
@@ -142,25 +142,47 @@ const dataTable = new simpleDatatables.DataTable(
 );
 
 // frows.addEventListener('click',barfalert,false);
-function copyToClipboardFallback(text) {
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-        document.execCommand("copy");
-        alert("✔️ Path has been copied to clipboard \n" + text);
-    } catch (err) {
-        alert("Failed to copy path.");
-    }
-    document.body.removeChild(textarea);
+function filePathPrompt(text) {
+    // const textarea = document.createElement("textarea");
+    // textarea.value = text;
+    // document.body.appendChild(textarea);
+    // textarea.select();
+    // console.log("textareat value",textarea.value);
+    // try {
+        // document.execCommand("copy");
+    prompt("Path info received, copy below when need\n", text);
+    // } catch (err) {
+    //     alert("Failed to copy path.");
+    // }
+    // document.body.removeChild(textarea);
 }
 var brainModalEl = document.getElementById('brainModal')
+var cppath = document.getElementById('brainModalFilePath');
+cppath.addEventListener('click', function () {
+    if (!cppath.dataset.dynamicLink) return;
+
+    fetch(cppath.dataset.dynamicLink)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.file_path) throw new Error("File path missing");
+            if (navigator.clipboard) {
+                return navigator.clipboard.writeText(data.file_path)
+                    .then(filePathPrompt(data.file_path));
+            } else {
+              filePathPrompt(data.file_path);
+            }
+        })
+        .catch(error => {
+            console.error("Failed:", error);
+            alert("Failed to fetch the file path.");
+        });
+}); 
+
 brainModalEl.addEventListener('show.bs.modal', function (event) {
   console.log('got modal, got dataset',event.relatedTarget.dataset);
   var bdata = event.relatedTarget.dataset;
   var fdata = JSON.parse(event.relatedTarget.dataset.fdata);
-  console.log('got fdata?',fdata.filename);
+  console.log('got fdata?',fdata);
 
   event.target.querySelector('#brainModalLabel').innerHTML = fdata.files_name;
   event.target.querySelector('#brainModalUpdated').innerHTML = fdata.files_modtime;
@@ -205,7 +227,7 @@ brainModalEl.addEventListener('show.bs.modal', function (event) {
   }
   
   // var cppath = event.target.querySelector('#brainModalFilePath') 
-  const cppath = document.getElementById('brainModalFilePath');
+  
 
   if (fdata.files)
   {
@@ -216,24 +238,25 @@ brainModalEl.addEventListener('show.bs.modal', function (event) {
     const dynamicLink = "/{{ current_path['html_path_split'][0] }}/get_file_path/" + parts.join('/');
 
     console.log('what is newPath',dynamicLink);
-    cppath.addEventListener('click', function () {
-    // Fetch the response from the dynamic link
-    fetch(dynamicLink)
-      .then(response => response.json()) 
-      .then(data => {
-          if (!data.file_path) throw new Error("File path missing");
-          if (navigator.clipboard) {
-              return navigator.clipboard.writeText(data.file_path)
-                  .then(() => alert("✔️ Path has been copied to clipboard \n" + data.file_path));
-          } else {
-              copyToClipboardFallback(data.file_path);
-          }
-      })
-      .catch(error => {
-          console.error("Failed:", error);
-          alert("Failed to fetch the file path.");
-      });
-  });
+    // cppath.addEventListener('click', function () {
+    // // Fetch the response from the dynamic link
+    // fetch(dynamicLink)
+    //   .then(response => response.json()) 
+    //   .then(data => {
+    //       if (!data.file_path) throw new Error("File path missing");
+    //       if (navigator.clipboard) {
+    //           return navigator.clipboard.writeText(data.file_path)
+    //               .then(() => prompt("Path info received, copy below \n" , data.file_path));
+    //       } else {
+    //           copyToClipboardFallback(data.file_path);
+    //       }
+    //   })
+    //   .catch(error => {
+    //       console.error("Failed:", error);
+    //       alert("Failed to fetch the file path.");
+    //   });
+    // });
+    cppath.dataset.dynamicLink = dynamicLink;
     cppath.classList.remove('d-none');
   }
   else{
