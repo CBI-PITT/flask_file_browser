@@ -55,8 +55,8 @@
 {% for dir in current_path['dirs'] %}
     <tr class="file-row">
         <td class="file-dir ps-5 subdir-path"><span class="d-none sort-hack">0</span>
-            <div  data-fdata='{{ dir | tojson }}' data-bs-toggle="modal" data-bs-target="#brainFolderModal">
-                <a class="ms-3" href="{{ dir }}">{{ current_path['dirs_name'][loop.index0] }}</a>
+            <div class="folder-item" data-fdata='{{ dir | tojson }}'>
+                <a class="ms-3 folder-link" href="{{ dir }}">{{ current_path['dirs_name'][loop.index0] }}</a>
             </div>
         </td>
         <td class="">
@@ -149,7 +149,18 @@
 
   
 <script>
-
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".folder-item").forEach(link => {
+        link.addEventListener("click", function (event) {
+            if (!event.target.closest("a")) {
+                let modal = new bootstrap.Modal(document.getElementById("brainFolderModal"));
+                let modalElement = document.getElementById("brainFolderModal");
+                modalElement.dataset.fdata = this.getAttribute("data-fdata");
+                modal.show();
+            }
+        });
+    });
+});
 
 // Modal configuration for accessing file options
 
@@ -297,19 +308,19 @@ var brainFolderModalEl = document.getElementById('brainFolderModal');
 var foldercppath = document.getElementById('brainModalFolderPath');
 
 brainFolderModalEl.addEventListener('show.bs.modal', function (event) {
-  console.log('got folder modal, got dataset',event.relatedTarget.dataset);
-  var fdata = JSON.parse(event.relatedTarget.dataset.fdata);
-  event.target.querySelector('#brainFolderModalText').innerHTML = fdata;
+  //console.log('got folder modal, got dataset',event.relatedTarget.dataset);
+  var fdata = JSON.parse(event.target.dataset.fdata);
   const parts = fdata.split('/').slice(3);
-  console.log('parts', parts);
+  // console.log('parts', parts);
+  event.target.querySelector('#brainFolderModalText').innerHTML = parts[parts.length - 1];
   const dynamicLink = "/{{ current_path['html_path_split'][0] }}/get_file_path/" + parts.join('/');
-  console.log('dynamicLink', dynamicLink);
+  // console.log('dynamicLink', dynamicLink);
   foldercppath.dataset.dynamicLink = dynamicLink;
   foldercppath.classList.remove('d-none');
 });
 
 foldercppath.addEventListener('click', function () {
-    console.log(foldercppath.dataset.dynamicLink);
+    // console.log(foldercppath.dataset.dynamicLink);
     if (!foldercppath.dataset.dynamicLink) return;
 
     fetch(foldercppath.dataset.dynamicLink)
