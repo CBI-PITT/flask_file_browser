@@ -76,8 +76,11 @@ a.cb-button{
     background: url(icons8-folder-16.png) center left 1.2em no-repeat;
 }
 .subdir-path{
-  
   background: url(icons8-folder-16.png) center left 1.8em no-repeat;
+}
+
+.subdir-path-yellow{
+  background-color: #FDF4D9;
 }
 
 .file-path{

@@ -53,9 +53,11 @@
 
 {# This is to describe all directories and stats in the current directory #}
 {% for dir in current_path['dirs'] %}
-    <tr class="">
+    <tr class="file-row">
         <td class="file-dir ps-5 subdir-path"><span class="d-none sort-hack">0</span>
-            <a class="ms-3" href="{{ dir }}">{{ current_path['dirs_name'][loop.index0] }}</a>
+            <div class="subdir-path-yellow" data-fdata='{{ dir | tojson }}' data-bs-toggle="modal" data-bs-target="#brainFolderModal">
+                <a class="ms-3" href="{{ dir }}">{{ current_path['dirs_name'][loop.index0] }}</a>
+            </div>
         </td>
         <td class="">
             {{ current_path['dirs_modtime'][loop.index0] }}
@@ -72,16 +74,16 @@
     <tr class="file-row">
         <td class="file-dir ps-5 file-path" ><span class="d-none sort-hack">1</span>
             
-<div class="brain-file-btn"
-    data-fdata='{{ current_path['files_json'][file] | tojson }}'
-    data-filename="{{ current_path['files_name'][loop.index0] }}" 
-    data-fileslug="{{ current_path['files_dl'][loop.index0] }}" 
+            <div class="brain-file-btn"
+                data-fdata='{{ current_path['files_json'][file] | tojson }}'
+                data-filename="{{ current_path['files_name'][loop.index0] }}"
+                data-fileslug="{{ current_path['files_dl'][loop.index0] }}"
     
-    data-filesize="{{ current_path['files_size'][loop.index0] }}"
-    data-updated="{{ current_path['files_modtime'][loop.index0] }}" 
-    data-bs-toggle="modal" data-bs-target="#brainModal">
-    <span class="ms-4">{{ current_path['files_name'][loop.index0] }}</span>
-        </div>
+                data-filesize="{{ current_path['files_size'][loop.index0] }}"
+                data-updated="{{ current_path['files_modtime'][loop.index0] }}"
+                data-bs-toggle="modal" data-bs-target="#brainModal">
+                <span class="ms-4">{{ current_path['files_name'][loop.index0] }}</span>
+            </div>
              
         </td>
         <td class="">
@@ -97,7 +99,7 @@
 <!-- Button trigger modal -->
 
   
-  <!-- Modal -->
+  <!-- File Modal -->
   <div class="modal fade" id="brainModal" tabindex="-1" aria-labelledby="brainModalLabel" aria-hidden="true">
     <div class="modal-dialog w-75">
       <div class="modal-content">
@@ -113,18 +115,40 @@
           <!-- <a href="#" type="button" id="brainModalNgSlug" class="btn btn-primary btn-sm" target="ngwindow">View on NG</a> -->
           <a href="#" type="button" id="brainModalFileSlug" class="btn btn-primary btn-sm" target="dlwindow">Download</a>
           <button  type="button" id="brainModalFilePath" class="btn btn-primary btn-sm" >Path Info</button>
-          <!-- <a href="#" type="button" id="brainModalFileInfo" class="btn btn-primary btn-sm" target="nginfowindow">NG Info</a> -->
+<!--           <a href="#" type="button" id="brainModalFileInfo" class="btn btn-primary btn-sm" target="nginfowindow">NG Info</a>-->
           <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
           
         </div>
       </div>
     </div>
   </div>
-  
+
+
+  <!-- Folder Modal -->
+  <div class="modal fade" id="brainFolderModal" tabindex="-1" aria-labelledby="brainModalLabel" aria-hidden="true">
+    <div class="modal-dialog w-75">
+      <div class="modal-content">
+        <div class="modal-header header">
+          <h5 class="modal-title">Options</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Folder: <span id="brainFolderModalText"></span></p>
+
+        </div>
+        <div class="modal-footer">
+          <!-- <a href="#" type="button" id="brainModalNgSlug" class="btn btn-primary btn-sm" target="ngwindow">View on NG</a> -->
+          <button  type="button" id="brainModalFolderPath" class="btn btn-primary btn-sm" >Path Info</button>
+          <!-- <a href="#" type="button" id="brainModalFileInfo" class="btn btn-primary btn-sm" target="nginfowindow">NG Info</a> -->
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
   
 <script>
-
-
 
 
 // Modal configuration for accessing file options
@@ -150,13 +174,13 @@ function filePathPrompt(text) {
     // console.log("textareat value",textarea.value);
     // try {
         // document.execCommand("copy");
-    prompt("Path info received, copy below when need\n", text);
+    prompt("Copy path below\n", text);
     // } catch (err) {
     //     alert("Failed to copy path.");
     // }
     // document.body.removeChild(textarea);
 }
-var brainModalEl = document.getElementById('brainModal')
+var brainModalEl = document.getElementById('brainModal');
 var cppath = document.getElementById('brainModalFilePath');
 cppath.addEventListener('click', function () {
     if (!cppath.dataset.dynamicLink) return;
@@ -269,8 +293,41 @@ brainModalEl.addEventListener('show.bs.modal', function (event) {
   console.log('what is event.target',event.target.querySelector('#brainModalLabel'));
 })
 
+var brainFolderModalEl = document.getElementById('brainFolderModal');
+var foldercppath = document.getElementById('brainModalFolderPath');
 
+brainFolderModalEl.addEventListener('show.bs.modal', function (event) {
+  console.log('got folder modal, got dataset',event.relatedTarget.dataset);
+  var fdata = JSON.parse(event.relatedTarget.dataset.fdata);
+  event.target.querySelector('#brainFolderModalText').innerHTML = fdata;
+  const parts = fdata.split('/').slice(3);
+  console.log('parts', parts);
+  const dynamicLink = "/{{ current_path['html_path_split'][0] }}/get_file_path/" + parts.join('/');
+  console.log('dynamicLink', dynamicLink);
+  foldercppath.dataset.dynamicLink = dynamicLink;
+  foldercppath.classList.remove('d-none');
+});
 
+foldercppath.addEventListener('click', function () {
+    console.log(foldercppath.dataset.dynamicLink);
+    if (!foldercppath.dataset.dynamicLink) return;
+
+    fetch(foldercppath.dataset.dynamicLink)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.file_path) throw new Error("File path missing");
+            if (navigator.clipboard) {
+                return navigator.clipboard.writeText(data.file_path)
+                    .then(filePathPrompt(data.file_path));
+            } else {
+              filePathPrompt(data.file_path);
+            }
+        })
+        .catch(error => {
+            console.error("Failed:", error);
+            alert("Failed to fetch the file path.");
+        });
+});
   </script>
   
 {% endblock %}
