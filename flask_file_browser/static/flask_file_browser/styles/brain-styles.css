@@ -77,16 +77,21 @@ a.cb-button{
 }
 .subdir-path{
   background: url(icons8-folder-16.png) center left 1.8em no-repeat;
+  background-color: #FDF4D9;
+  border:2px solid #FFF;
+  margin-bottom:100em !important;
+  cursor: pointer
 }
 
-.subdir-path-yellow{
+/* .subdir-path-yellow{
   background-color: #FDF4D9;
-}
+} */
 
 .file-path{
   background-color: #EEE;
   margin-bottom:1em !important;
   border:2px solid #FFF;
+  cursor: pointer
 }
 /* 
 .file-slug{

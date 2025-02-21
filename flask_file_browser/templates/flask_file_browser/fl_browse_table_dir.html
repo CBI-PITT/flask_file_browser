@@ -55,7 +55,7 @@
 {% for dir in current_path['dirs'] %}
     <tr class="file-row">
         <td class="file-dir ps-5 subdir-path"><span class="d-none sort-hack">0</span>
-            <div class="subdir-path-yellow" data-fdata='{{ dir | tojson }}' data-bs-toggle="modal" data-bs-target="#brainFolderModal">
+            <div  data-fdata='{{ dir | tojson }}' data-bs-toggle="modal" data-bs-target="#brainFolderModal">
                 <a class="ms-3" href="{{ dir }}">{{ current_path['dirs_name'][loop.index0] }}</a>
             </div>
         </td>
