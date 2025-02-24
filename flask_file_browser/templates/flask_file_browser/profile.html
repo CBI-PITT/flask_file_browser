@@ -7,9 +7,9 @@
 {% endwith %}
 <!-- <form method="GET" action="/profile"> -->
 
-{% extends "base.html" %}
+{% extends "flask_file_browser/ffbbase.html" %}
 
-{% block content %}
+{% block ffbcontent %}
 <h1 class="title">
   Welcome, {{ user.id }}!
 </h1>

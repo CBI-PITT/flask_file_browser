@@ -1,26 +1,8 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-    {% if gtag %}
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id={{gtag}}"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', '{{gtag}}');
-    </script>
-    {% endif %}
-
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ app_name }} {{ page_name }}</title>
+{% extends "base.html" %}
+    {% block styles %}
     <link rel="stylesheet" href="{{ url_for('flask_file_browser.static', filename='flask_file_browser/styles/base_template.css') }}" />
-</head>
-
-<body>
+    {% endblock %}
+    {% block content %}
     <section class="hero is-primary is-fullheight">
 
         <div class="hero-head">
@@ -54,11 +36,9 @@
 
         <div class="hero-body">
             <div class="container has-text-centered">
-               {% block content %}
+               {% block ffbcontent %}
                {% endblock %}
             </div>
         </div>
     </section>
-</body>
-
-</html>
+   {% endblock %}
