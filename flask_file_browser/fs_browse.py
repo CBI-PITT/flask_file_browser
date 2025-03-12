@@ -406,13 +406,26 @@ def initiate_browseable(extended_app,settings):
         out = get_path_data(base, request)
         
         if isinstance(out,tuple) and out[0] == 'render_template':
+            modal_dir = os.path.join(os.path.dirname(__file__), 'templates', 'flask_file_browser', 'modals')
+            button_dir = os.path.join(os.path.dirname(__file__), 'templates', 'flask_file_browser', 'triggers')
+            modal_templates = [
+                f'flask_file_browser/modals/{filename}' for filename in os.listdir(modal_dir) if
+                filename.endswith('.html')
+            ]
+            button_templates = [
+                f'flask_file_browser/triggers/{filename}' for filename in os.listdir(button_dir) if
+                filename.endswith('.html')
+            ]
+
             page_description, current_path = out[1:]
             return render_template(
                 'flask_file_browser/fl_browse_table_dir.html',
                 current_path={**page_description, **current_path}, 
                 user=auth.user_info(),
-                gtag=settings.get('GA4', 'gtag')
-                )
+                gtag=settings.get('GA4', 'gtag'),
+                modals=modal_templates,
+                buttons=button_templates
+            )
         else:
             return out
     

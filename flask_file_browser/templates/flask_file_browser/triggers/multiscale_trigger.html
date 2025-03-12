@@ -1,0 +1,22 @@
+<button type="button" id="multiscaleTrigger" class="btn btn-primary btn-sm toggle-modal d-none" data-bs-toggle="modal" data-bs-target="#multiscale" data-current="#brainModal" data-target="#multiscale">
+    Multiscale Info
+</button>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+      var brainModalEl = document.getElementById('brainModal');
+      brainModalEl.addEventListener('show.bs.modal', function (event) {
+        var lbl = document.querySelector('#brainModalLabel').innerHTML;
+        if(lbl.endsWith(".ims")) {
+          var btn = document.querySelector('#multiscaleTrigger');
+          btn.classList.remove("d-none");
+        }
+      });
+      var closeBtn = document.getElementById('closeFileModalBtn');
+      closeBtn.addEventListener('click', function (event) {
+        var btn = document.querySelector('#multiscaleTrigger');
+        if (typeof btn !== 'undefined') {
+          btn.classList.add("d-none");
+        }
+      });
+    });
+</script>

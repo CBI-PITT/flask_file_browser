@@ -110,7 +110,7 @@
 
 import os
 import flask
-from flask import request, render_template,Blueprint
+from flask import request, render_template, Blueprint, jsonify
 from .utils import get_config,get_html_split_and_associated_file_path,split_html
 from flask_file_browser import auth
 
@@ -164,15 +164,18 @@ def init_blueprint(app, settings=settings,prefix='/browser'):
         """
         Landing zone for BrainPi
         """
-        return render_template('flask_file_browser/extended_home.html',
-                            browser_active=browser_active,
-                            user=auth.user_info(),
-                            app_name=settings.get('app','name'),
-                            app_description=settings.get('app','description'),
-                            app_motto=settings.get('app','motto'),
-                            app_logo=LOGO,
-                            page_name='Home',
-                            gtag=settings.get('GA4','gtag'))
+        return render_template(
+            'flask_file_browser/extended_home.html',
+            browser_active=browser_active,
+            user=auth.user_info(),
+            app_name=settings.get('app','name'),
+            app_description=settings.get('app','description'),
+            app_motto=settings.get('app','motto'),
+            app_logo=LOGO,
+            page_name='Home',
+            gtag=settings.get('GA4','gtag')
+        )
+
     @extended_app.route('/get_file_path/<path:html_path>', methods=['GET'])
     def file_path(html_path):
         url_tuple = split_html(request.path)
@@ -183,6 +186,33 @@ def init_blueprint(app, settings=settings,prefix='/browser'):
         # print(f"html_path: {html_path}") # The dynamic subpath
         file_path = get_html_split_and_associated_file_path(settings,request)
         return {"file_path": f"{file_path[1]}"}
+
+    @extended_app.route('/imaris_info/<path:html_path>', methods=['GET'])
+    def imaris_info(html_path):
+        from imaris_ims_file_reader import ims
+        url_tuple = split_html(request.path)
+        request.path ='/' + '/'.join(url_tuple[1:])
+        file_path = get_html_split_and_associated_file_path(settings,request)
+        f = ims(file_path[1])
+        table = '''
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Level</th>
+<th>Resolution</th>
+<th>Shape</th>
+</tr>
+</thead>
+<tbody>
+'''
+        for rl in range(f.ResolutionLevels):
+            table = table + "<tr>"
+            table = table + "<td>" + str(rl) +"</td>"
+            table = table + "<td>" + str(f.metaData[(rl, 0, 0, 'resolution')]) + "</td>"
+            table = table + "<td>" + str(f.metaData[(rl, 0, 0, 'shape')][-3:]) + "</td>"
+            table = table + "</tr>"
+        table += "</tbody></table>"
+        return jsonify({"imaris_info": table})
 
     app.register_blueprint(extended_app, url_prefix=prefix)
     return app

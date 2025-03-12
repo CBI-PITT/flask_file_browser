@@ -1,0 +1,52 @@
+<div class="modal fade" id="multiscale" tabindex="-1" aria-labelledby="multiscaleModalLabel" aria-hidden="true">
+    <div class="modal-dialog w-75">
+        <div class="modal-content">
+            <div class="modal-header header">
+                <h5 class="modal-title id="multiscaleModalLabel">Multiscale info</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modal2-content">Loading...</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+    // Attach event listeners to buttons that toggle modals
+    document.querySelectorAll(".toggle-modal").forEach(button => {
+        button.addEventListener("click", function() {
+            let currentModalID = this.getAttribute("data-current");
+            let targetModalID = this.getAttribute("data-target");
+
+            // Hide current modal
+            let currentModal = document.querySelector(currentModalID);
+            let targetModal = document.querySelector(targetModalID);
+
+            if (currentModal && targetModal) {
+                let currentModalInstance = bootstrap.Modal.getInstance(currentModal);
+                if (currentModalInstance) {
+                    currentModalInstance.hide();
+                    var btn = document.querySelector('#multiscaleTrigger');
+                    if (typeof btn !== 'undefined') {
+                        btn.classList.add("d-none");
+                    }
+                }
+            }
+            let filePath = document.querySelector('#brainModalFilePath');
+            let link = filePath.dataset.dynamicLink.replace("get_file_path", "imaris_info")
+            // console.log(link);
+            fetch(link)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("modal2-content").innerHTML = data.imaris_info;
+            })
+            .catch(error => console.error("Error loading modal content:", error));
+
+        });
+    });
+});
+</script>

@@ -116,8 +116,12 @@
           <a href="#" type="button" id="brainModalFileSlug" class="btn btn-primary btn-sm" target="dlwindow">Download</a>
           <button  type="button" id="brainModalFilePath" class="btn btn-primary btn-sm" >Path Info</button>
 <!--           <a href="#" type="button" id="brainModalFileInfo" class="btn btn-primary btn-sm" target="nginfowindow">NG Info</a>-->
-          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-          
+          {% if buttons is defined and buttons %}
+            {% for button in buttons %}
+              {% include button %}
+            {% endfor %}
+          {% endif %}
+          <button type="button" id="closeFileModalBtn" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
         </div>
       </div>
     </div>
@@ -141,11 +145,15 @@
           <button  type="button" id="brainModalFolderPath" class="btn btn-primary btn-sm" >Path Info</button>
           <!-- <a href="#" type="button" id="brainModalFileInfo" class="btn btn-primary btn-sm" target="nginfowindow">NG Info</a> -->
           <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-
         </div>
       </div>
     </div>
   </div>
+    {% if modals is defined and modals %}
+        {% for modal in modals %}
+            {% include modal %}
+        {% endfor %}
+    {% endif %}
 {% endblock %}
 
 {% block scripts %}
