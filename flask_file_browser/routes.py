@@ -194,7 +194,8 @@ def init_blueprint(app, settings=settings,prefix='/browser'):
         request.path ='/' + '/'.join(url_tuple[1:])
         file_path = get_html_split_and_associated_file_path(settings,request)
         f = ims(file_path[1])
-        table = '''
+        table = f"<p>Channels: {f.Channels}</p>"
+        table = table + '''
 <table class="table table-striped table-bordered">
 <thead>
 <tr>
