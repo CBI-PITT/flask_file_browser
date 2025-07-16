@@ -3,7 +3,7 @@
 {% block ffbcontent %}
 
 {# This displays a link to the parent directory above table #}
-<div class="container ps-0">
+<div class="container-fluid px-0">
     {% if not current_path['parent_is_root'] %}
 
         <div id="parent-link" class="file-dir ps-5 parent-path">
@@ -18,10 +18,10 @@
             </a>
         </div>
 
-{% endif %}
+    {% endif %}
 
 {# This is to describe the current directory and stats in the table #}
-<table id="myTable" class="mx-auto">
+<table id="myTable" class="w-100">
     <thead>
     <tr class="bg-light">
         <th class="w-50">Dir | File</th>
@@ -158,6 +158,9 @@
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".folder-item").forEach(link => {
@@ -175,32 +178,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Modal configuration for accessing file options
 
-const dataTable = new simpleDatatables.DataTable(
-    "#myTable", 
+$(document).ready(function() {
+const dataTable = new DataTable(
+    "#myTable",
       {
          searchable: true,
          fixedHeight: true,
-         columns: [
-             // Sort the second column in ascending order
-             { select: 0, sort: "asc" },
-           ]
        }
 );
+} );
 
-// frows.addEventListener('click',barfalert,false);
+// $(document).ready(function() {
+//      $('#myTable')
+//        .on( 'order.dt',  function () { console.log('Order' ); } )
+//        .on( 'search.dt', function () {console.log('Search' ); } )
+//        .on( 'page.dt',   function () { console.log('Page' ); } )
+//        .dataTable();
+//} );
+
 function filePathPrompt(text) {
-    // const textarea = document.createElement("textarea");
-    // textarea.value = text;
-    // document.body.appendChild(textarea);
-    // textarea.select();
-    // console.log("textareat value",textarea.value);
-    // try {
-        // document.execCommand("copy");
     prompt("Copy path below\n", text);
-    // } catch (err) {
-    //     alert("Failed to copy path.");
-    // }
-    // document.body.removeChild(textarea);
 }
 var brainModalEl = document.getElementById('brainModal');
 var cppath = document.getElementById('brainModalFilePath');
@@ -225,42 +222,14 @@ cppath.addEventListener('click', function () {
 }); 
 
 brainModalEl.addEventListener('show.bs.modal', function (event) {
-  console.log('got modal, got dataset',event.relatedTarget.dataset);
   var bdata = event.relatedTarget.dataset;
   var fdata = JSON.parse(event.relatedTarget.dataset.fdata);
-  console.log('got fdata?',fdata);
 
   event.target.querySelector('#brainModalLabel').innerHTML = fdata.files_name;
   event.target.querySelector('#brainModalUpdated').innerHTML = fdata.files_modtime;
   event.target.querySelector('#brainModalFileSize').innerHTML = fdata.files_size[0] + ' ' + fdata.files_size[1];
 
-// Button Configuration for file options
-
-// Neuroglancer Button and Info
-
-//   var ng_btn = event.target.querySelector('#brainModalNgSlug')
-//   var ng_info_btn = event.target.querySelector('#brainModalFileInfo')
-//   if (fdata.files_ng_slug)
-// {
-  
-//   ng_btn.setAttribute('href',fdata.files_ng_slug);
-//   ng_btn.classList.remove('d-none');
-  
-//   ng_info_btn.setAttribute('href',fdata.files_ng_info);
-//   ng_info_btn.classList.remove('d-none');
-  
-// }
-// else{
-//   ng_btn.setAttribute('href',fdata.files_ng_slug)
-//   ng_btn.classList.add('d-none');
-  
-//   ng_info_btn.setAttribute('href',fdata.files_ng_info);
-//   ng_info_btn.classList.add('d-none');
-// }  
-
-// Download Button
-
-  var dl_btn = event.target.querySelector('#brainModalFileSlug') 
+  var dl_btn = event.target.querySelector('#brainModalFileSlug')
 
   if (fdata.files_dl)
   {
@@ -272,36 +241,13 @@ brainModalEl.addEventListener('show.bs.modal', function (event) {
     dl_btn.classList.add('d-none');
   }
   
-  // var cppath = event.target.querySelector('#brainModalFilePath') 
-  
-
   if (fdata.files)
   {
-    // const dynamicLink = fdata.files.
-    // const dynamicLink = fdata.files.replace("/{{ current_path['html_path_split'][0] }}", "/get_file_path"); // Replace with your dynamic URL logic
     const parts = fdata.files.split('/').slice(3);  // Split and remove first 2 elements
     console.log('what is parts',parts);
     const dynamicLink = "/{{ current_path['html_path_split'][0] }}/get_file_path/" + parts.join('/');
 
     console.log('what is newPath',dynamicLink);
-    // cppath.addEventListener('click', function () {
-    // // Fetch the response from the dynamic link
-    // fetch(dynamicLink)
-    //   .then(response => response.json()) 
-    //   .then(data => {
-    //       if (!data.file_path) throw new Error("File path missing");
-    //       if (navigator.clipboard) {
-    //           return navigator.clipboard.writeText(data.file_path)
-    //               .then(() => prompt("Path info received, copy below \n" , data.file_path));
-    //       } else {
-    //           copyToClipboardFallback(data.file_path);
-    //       }
-    //   })
-    //   .catch(error => {
-    //       console.error("Failed:", error);
-    //       alert("Failed to fetch the file path.");
-    //   });
-    // });
     cppath.dataset.dynamicLink = dynamicLink;
     cppath.classList.remove('d-none');
   }
@@ -310,8 +256,6 @@ brainModalEl.addEventListener('show.bs.modal', function (event) {
     cppath.classList.add('d-none');
   }
 
-
-  // event.target.querySelector('#')
   console.log('what is event.target',event.target.querySelector('#brainModalLabel'));
 })
 
@@ -319,19 +263,15 @@ var brainFolderModalEl = document.getElementById('brainFolderModal');
 var foldercppath = document.getElementById('brainModalFolderPath');
 
 brainFolderModalEl.addEventListener('show.bs.modal', function (event) {
-  // console.log('got folder modal');
   var fdata = JSON.parse(event.target.dataset.fdata);
   const parts = fdata.split('/').slice(3);
-  // console.log('parts', parts);
   event.target.querySelector('#brainFolderModalText').innerHTML = parts[parts.length - 1];
   const dynamicLink = "/{{ current_path['html_path_split'][0] }}/get_file_path/" + parts.join('/');
-  // console.log('dynamicLink', dynamicLink);
   foldercppath.dataset.dynamicLink = dynamicLink;
   foldercppath.classList.remove('d-none');
 });
 
 foldercppath.addEventListener('click', function () {
-    // console.log(foldercppath.dataset.dynamicLink);
     if (!foldercppath.dataset.dynamicLink) return;
 
     fetch(foldercppath.dataset.dynamicLink)
