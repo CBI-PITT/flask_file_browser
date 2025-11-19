@@ -115,6 +115,7 @@
           <!-- <a href="#" type="button" id="brainModalNgSlug" class="btn btn-primary btn-sm" target="ngwindow">View on NG</a> -->
           <a href="#" type="button" id="brainModalFileSlug" class="btn btn-primary btn-sm" target="dlwindow">Download</a>
           <button  type="button" id="brainModalFilePath" class="btn btn-primary btn-sm" >Path Info</button>
+          <button type="button" id="brainModalSelectBtn" class="btn btn-primary btn-sm">Select File</button>
 <!--           <a href="#" type="button" id="brainModalFileInfo" class="btn btn-primary btn-sm" target="nginfowindow">NG Info</a>-->
           {% if buttons is defined and buttons %}
             {% for button in buttons %}
@@ -143,6 +144,7 @@
         <div class="modal-footer">
           <!-- <a href="#" type="button" id="brainModalNgSlug" class="btn btn-primary btn-sm" target="ngwindow">View on NG</a> -->
           <button  type="button" id="brainModalFolderPath" class="btn btn-primary btn-sm" >Path Info</button>
+          <button type="button" id="brainFolderModalSelectBtn" class="btn btn-primary btn-sm">Select Folder</button>
           <!-- <a href="#" type="button" id="brainModalFileInfo" class="btn btn-primary btn-sm" target="nginfowindow">NG Info</a> -->
           <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
         </div>
@@ -289,6 +291,75 @@ foldercppath.addEventListener('click', function () {
             console.error("Failed:", error);
             alert("Failed to fetch the file path.");
         });
+});
+
+function getFieldId() {
+    return window.frameElement?.dataset?.fieldId || null;
+}
+
+document.getElementById("brainModalSelectBtn").addEventListener("click", function () {
+    const fieldId = getFieldId();
+    const filePath = cppath.dataset.dynamicLink;
+    const fileName = document.getElementById("brainModalLabel").textContent;
+
+    if (!fieldId || !filePath) {
+        alert("Missing file path or field ID");
+        return;
+    }
+
+    fetch(cppath.dataset.dynamicLink)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.file_path) throw new Error("File path missing");
+            const trueFilePath = data.file_path;
+            console.log(trueFilePath);
+
+            window.parent.postMessage({
+                fieldId: fieldId,
+                selectedPath: trueFilePath,
+                fileName: fileName
+            }, "*");
+
+            // Close modal
+            const modalEl = bootstrap.Modal.getInstance(document.getElementById("brainModal"));
+            if (modalEl) modalEl.hide();
+        })
+        .catch(error => {
+            console.error("Failed:", error);
+            alert("Failed to fetch the file path.");
+        });
+});
+
+document.getElementById("brainFolderModalSelectBtn").addEventListener("click", function () {
+    const fieldId = getFieldId();
+    const filePath = foldercppath.dataset.dynamicLink;
+    const fileName = document.getElementById("brainFolderModalText").textContent;
+
+    if (!fieldId || !filePath) {
+        alert("Missing file path or field ID");
+        return;
+    }
+
+    fetch(foldercppath.dataset.dynamicLink)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.file_path) throw new Error("File path missing");
+            const trueFilePath = data.file_path;
+            console.log(trueFilePath);
+                window.parent.postMessage({
+                    fieldId: fieldId,
+                    selectedPath: trueFilePath,
+                    fileName: fileName
+                }, "*");
+
+            const modalEl = bootstrap.Modal.getInstance(document.getElementById("brainFolderModal"));
+            if (modalEl) modalEl.hide();
+        })
+        .catch(error => {
+            console.error("Failed:", error);
+            alert("Failed to fetch the file path.");
+        });
+
 });
   </script>
 {% endblock %}
