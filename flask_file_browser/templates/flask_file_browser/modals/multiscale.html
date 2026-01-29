@@ -36,9 +36,9 @@
                     }
                 }
             }
-            let filePath = document.querySelector('#brainModalFilePath');
+            // let filePath = document.querySelector('#brainModalFilePath');
+            let filePath = document.querySelector('#brainModalSelectBtn');
             let link = filePath.dataset.dynamicLink.replace("get_file_path", "imaris_info")
-            // console.log(link);
             fetch(link)
             .then(response => response.json())
             .then(data => {
