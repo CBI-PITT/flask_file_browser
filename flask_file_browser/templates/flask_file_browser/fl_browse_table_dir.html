@@ -260,6 +260,7 @@ brainFolderModalEl.addEventListener('show.bs.modal', function (event) {
   event.target.querySelector('#brainFolderModalText').innerHTML = parts[parts.length - 1];
   const dynamicLink = "/{{ current_path['html_path_split'][0] }}/get_file_path/" + parts.join('/');
   folderselpath.dataset.dynamicLink = dynamicLink;
+  folderselpath.dataset.browserPath = fdata;
   //foldercppath.dataset.dynamicLink = dynamicLink;
   //foldercppath.classList.remove('d-none');
 });
@@ -292,8 +293,9 @@ document.getElementById("brainModalSelectBtn").addEventListener("click", functio
     const fieldId = getFieldId();
     const filePath = selpath.dataset.dynamicLink;
     const fileName = document.getElementById("brainModalLabel").textContent;
+    const nextBrowserPath = window.location.pathname;
 
-    if (!fieldId || !filePath) {
+    if (!fieldId || !filePath || !nextBrowserPath) {
         alert("Missing file path or field ID");
         return;
     }
@@ -307,7 +309,8 @@ document.getElementById("brainModalSelectBtn").addEventListener("click", functio
             window.parent.postMessage({
                 fieldId: fieldId,
                 selectedPath: trueFilePath,
-                fileName: fileName
+                fileName: fileName,
+                nextBrowserPath: nextBrowserPath
             }, "*");
 
             // Close modal
@@ -324,8 +327,9 @@ document.getElementById("brainFolderModalSelectBtn").addEventListener("click", f
     const fieldId = getFieldId();
     const filePath = folderselpath.dataset.dynamicLink;
     const fileName = document.getElementById("brainFolderModalText").textContent;
+    const nextBrowserPath = folderselpath.dataset.browserPath;
 
-    if (!fieldId || !filePath) {
+    if (!fieldId || !filePath || !nextBrowserPath) {
         alert("Missing file path or field ID");
         return;
     }
@@ -338,7 +342,8 @@ document.getElementById("brainFolderModalSelectBtn").addEventListener("click", f
                 window.parent.postMessage({
                     fieldId: fieldId,
                     selectedPath: trueFilePath,
-                    fileName: fileName
+                    fileName: fileName,
+                    nextBrowserPath: nextBrowserPath
                 }, "*");
 
             const modalEl = bootstrap.Modal.getInstance(document.getElementById("brainFolderModal"));
