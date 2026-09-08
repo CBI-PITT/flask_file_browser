@@ -114,6 +114,9 @@
         <div class="modal-footer">
           <!-- <a href="#" type="button" id="brainModalNgSlug" class="btn btn-primary btn-sm" target="ngwindow">View on NG</a> -->
           <a href="#" type="button" id="brainModalFileSlug" class="btn btn-primary btn-sm" target="dlwindow">Download</a>
+          {% if brainpi_enabled %}
+          <a id="brainModalBrainPi" class="btn btn-primary btn-sm d-none" target="_blank" rel="noopener noreferrer">BrAinPI</a>
+          {% endif %}
 <!--          <button  type="button" id="brainModalFilePath" class="btn btn-primary btn-sm" >Path Info</button>-->
           <button type="button" id="brainModalSelectBtn" class="btn btn-primary btn-sm">Select File</button>
 <!--           <a href="#" type="button" id="brainModalFileInfo" class="btn btn-primary btn-sm" target="nginfowindow">NG Info</a>-->
@@ -144,6 +147,9 @@
         <div class="modal-footer">
           <!-- <a href="#" type="button" id="brainModalNgSlug" class="btn btn-primary btn-sm" target="ngwindow">View on NG</a> -->
 <!--          <button  type="button" id="brainModalFolderPath" class="btn btn-primary btn-sm" >Path Info</button>-->
+          {% if brainpi_enabled %}
+          <a id="brainFolderModalBrainPi" class="btn btn-primary btn-sm d-none" target="_blank" rel="noopener noreferrer">BrAinPI</a>
+          {% endif %}
           <button type="button" id="brainFolderModalSelectBtn" class="btn btn-primary btn-sm">Select Folder</button>
           <!-- <a href="#" type="button" id="brainModalFileInfo" class="btn btn-primary btn-sm" target="nginfowindow">NG Info</a> -->
           <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
@@ -192,6 +198,51 @@ const dataTable = new DataTable(
 function filePathPrompt(text) {
     prompt("Copy path below\n", text);
 }
+{% if brainpi_enabled %}
+const brainPiBaseUrl = {{ brainpi_base_url | tojson }};
+
+function configureBrainPiButton(button, itemName, pathLookupUrl, supportedSuffixes) {
+    button.classList.add('d-none');
+    button.classList.remove('disabled');
+    button.removeAttribute('href');
+    button.removeAttribute('aria-disabled');
+    button.dataset.pathLookupUrl = pathLookupUrl || '';
+
+    const normalizedName = String(itemName || '').toLowerCase();
+    if (!pathLookupUrl || !supportedSuffixes.some(suffix => normalizedName.endsWith(suffix))) {
+        return;
+    }
+
+    button.classList.remove('d-none');
+    button.classList.add('disabled');
+    button.setAttribute('aria-disabled', 'true');
+
+    fetch(pathLookupUrl)
+        .then(response => {
+            if (!response.ok) throw new Error(`Path lookup failed with status ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            if (!data.file_path) throw new Error("File path missing");
+            if (button.dataset.pathLookupUrl !== pathLookupUrl) return;
+
+            button.setAttribute(
+                'href',
+                brainPiBaseUrl + '/path_to_html_options/?path=' + encodeURIComponent(data.file_path)
+            );
+            button.classList.remove('disabled');
+            button.removeAttribute('aria-disabled');
+        })
+        .catch(error => {
+            if (button.dataset.pathLookupUrl !== pathLookupUrl) return;
+            button.classList.add('d-none');
+            button.classList.remove('disabled');
+            button.removeAttribute('aria-disabled');
+            console.error("Failed to build BrAinPI link:", error);
+        });
+}
+{% endif %}
+
 var brainModalEl = document.getElementById('brainModal');
 // var cppath = document.getElementById('brainModalFilePath');
 var selpath = document.getElementById('brainModalSelectBtn');
@@ -234,11 +285,12 @@ brainModalEl.addEventListener('show.bs.modal', function (event) {
     dl_btn.setAttribute('href',fdata.files_dl);
     dl_btn.classList.add('d-none');
   }
-  
+
+  let dynamicLink = null;
   if (fdata.files)
   {
     const parts = fdata.files.split('/').slice(3);  // Split and remove first 2 elements
-    const dynamicLink = "/{{ current_path['html_path_split'][0] }}/get_file_path/" + parts.join('/');
+    dynamicLink = "/{{ current_path['html_path_split'][0] }}/get_file_path/" + parts.join('/');
 
     //cppath.dataset.dynamicLink = dynamicLink;
     selpath.dataset.dynamicLink = dynamicLink;
@@ -248,6 +300,14 @@ brainModalEl.addEventListener('show.bs.modal', function (event) {
     alert("No path available to copy.");
     //cppath.classList.add('d-none');
   }
+  {% if brainpi_enabled %}
+  configureBrainPiButton(
+      event.target.querySelector('#brainModalBrainPi'),
+      fdata.files_name,
+      dynamicLink,
+      ['.tif', '.tiff', '.ims']
+  );
+  {% endif %}
 })
 
 var brainFolderModalEl = document.getElementById('brainFolderModal');
@@ -263,6 +323,14 @@ brainFolderModalEl.addEventListener('show.bs.modal', function (event) {
   folderselpath.dataset.browserPath = fdata;
   //foldercppath.dataset.dynamicLink = dynamicLink;
   //foldercppath.classList.remove('d-none');
+  {% if brainpi_enabled %}
+  configureBrainPiButton(
+      event.target.querySelector('#brainFolderModalBrainPi'),
+      parts[parts.length - 1],
+      dynamicLink,
+      ['.ome.zarr', '.omehans']
+  );
+  {% endif %}
 });
 
 //foldercppath.addEventListener('click', function () {
