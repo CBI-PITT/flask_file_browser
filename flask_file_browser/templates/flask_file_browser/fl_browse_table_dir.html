@@ -2,6 +2,52 @@
 
 {% block ffbcontent %}
 
+<style>
+.folder-item,
+.brain-file-btn {
+    align-items: center;
+    display: flex;
+    min-height: 2.5rem;
+    width: 100%;
+}
+
+.folder-link,
+.brain-file-btn > span {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.tile-action {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: .25rem;
+    color: #212529;
+    cursor: pointer;
+    display: inline-flex;
+    flex: 0 0 2.5rem;
+    font-size: 1.35rem;
+    height: 2.25rem;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+}
+
+.tile-action:hover,
+.tile-action:focus-visible {
+    background-color: rgba(33, 37, 41, .12);
+}
+
+.tile-action:focus-visible {
+    outline: 2px solid #212529;
+    outline-offset: -2px;
+}
+
+.file-path {
+    cursor: default;
+}
+</style>
+
 {# This displays a link to the parent directory above table #}
 <div class="container-fluid px-0">
     {% if not current_path['parent_is_root'] %}
@@ -57,6 +103,11 @@
         <td class="file-dir ps-5 subdir-path"><span class="d-none sort-hack">0</span>
             <div class="folder-item" data-fdata='{{ dir | tojson }}'>
                 <a class="ms-3 folder-link" href="{{ dir }}">{{ current_path['dirs_name'][loop.index0] }}</a>
+                <button type="button" class="tile-action folder-action"
+                    data-fdata='{{ dir | tojson }}'
+                    data-bs-toggle="modal" data-bs-target="#brainFolderModal"
+                    aria-label="Open options for {{ current_path['dirs_name'][loop.index0] }}"
+                    title="Folder options"><span aria-hidden="true">&#8942;</span></button>
             </div>
         </td>
         <td class="">
@@ -81,8 +132,13 @@
     
                 data-filesize="{{ current_path['files_size'][loop.index0] }}"
                 data-updated="{{ current_path['files_modtime'][loop.index0] }}"
-                data-bs-toggle="modal" data-bs-target="#brainModal">
+                >
                 <span class="ms-4">{{ current_path['files_name'][loop.index0] }}</span>
+                <button type="button" class="tile-action file-action"
+                    data-fdata='{{ current_path['files_json'][file] | tojson }}'
+                    data-bs-toggle="modal" data-bs-target="#brainModal"
+                    aria-label="Open options for {{ current_path['files_name'][loop.index0] }}"
+                    title="File options"><span aria-hidden="true">&#8942;</span></button>
             </div>
              
         </td>
@@ -170,19 +226,6 @@
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".folder-item").forEach(link => {
-        link.addEventListener("click", function (event) {
-            if (!event.target.closest("a")) {
-                let modal = new bootstrap.Modal(document.getElementById("brainFolderModal"));
-                let modalElement = document.getElementById("brainFolderModal");
-                modalElement.dataset.fdata = this.getAttribute("data-fdata");
-                modal.show();
-            }
-        });
-    });
-});
-
 // Modal configuration for accessing file options
 
 $(document).ready(function() {
@@ -315,7 +358,8 @@ var brainFolderModalEl = document.getElementById('brainFolderModal');
 var folderselpath = document.getElementById('brainFolderModalSelectBtn');
 
 brainFolderModalEl.addEventListener('show.bs.modal', function (event) {
-  var fdata = JSON.parse(event.target.dataset.fdata);
+  var trigger = event.relatedTarget || event.target;
+  var fdata = JSON.parse(trigger.dataset.fdata);
   const parts = fdata.split('/').slice(3);
   event.target.querySelector('#brainFolderModalText').innerHTML = parts[parts.length - 1];
   const dynamicLink = "/{{ current_path['html_path_split'][0] }}/get_file_path/" + parts.join('/');
