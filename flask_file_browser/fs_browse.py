@@ -387,6 +387,9 @@ def initiate_browseable(extended_app,settings):
         Flask: The modified Flask application with the added routes.
     """
     # from routes import login_manager
+
+    brainpi_enabled = settings.getboolean('brainpi', 'enabled', fallback=False)
+    brainpi_base_url = settings.get('brainpi', 'base_url').rstrip('/') if brainpi_enabled else ''
     
     # base entrypoint must always begin and end with '/' --> /my_entry/
     base = '/dir/'
@@ -424,7 +427,9 @@ def initiate_browseable(extended_app,settings):
                 user=auth.user_info(),
                 gtag=settings.get('GA4', 'gtag'),
                 modals=modal_templates,
-                buttons=button_templates
+                buttons=button_templates,
+                brainpi_enabled=brainpi_enabled,
+                brainpi_base_url=brainpi_base_url
             )
         else:
             return out
