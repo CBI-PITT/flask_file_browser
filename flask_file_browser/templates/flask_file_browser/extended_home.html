@@ -1,27 +1,20 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<h1>BROWSER</h1>
-</body>
-</html> -->
 {% extends "flask_file_browser/ffbbase.html" %}
 
 {% block ffbcontent %}
-<h1 style="font-size: 30px">{{app_name}}</h1>
-{% if app_description %}
-<p style="font-size: 20px">{{app_description}}</p>
-{% endif %}
-<div class="img-with-text">
-    {% if app_logo %}
-    <img src="{{ url_for('flask_file_browser.static', filename='flask_file_browser/images/cbi_logo.png') }}" alt="logo" />
-    {% endif %}
-    {% if app_motto %}
-    <p style="font-size: 30px">{{app_motto}}</p>
-    {% endif %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8">
+        <div class="card ffb-card">
+            <div class="card-body p-4 p-md-5 text-center">
+                <img src="{{ url_for('flask_file_browser.static', filename='flask_file_browser/images/cbi_logo.png') }}" alt="logo" class="ffb-home-logo">
+                <h1 class="h4 fw-semibold mt-3 mb-1">{{ app_name }}</h1>
+                {% if app_description %}
+                <p class="text-muted mb-1">{{ app_description }}</p>
+                {% endif %}
+                {% if app_motto %}
+                <p class="ffb-motto small text-muted mb-0">{{ app_motto }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
-
 {% endblock %}

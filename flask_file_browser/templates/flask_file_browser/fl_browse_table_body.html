@@ -1,216 +1,159 @@
-<style>
-.folder-item,
-.brain-file-btn {
-    align-items: center;
-    display: flex;
-    min-height: 2.5rem;
-    width: 100%;
-}
+{# Toolbar, file table and option modals for the directory listing.
+   Element IDs and data-fdata attributes are part of the contract with
+   fl_browse_table_scripts.html and the embed picker; keep them stable. #}
+{% set folder_count = current_path['current_path_entries'][0] %}
+{% set file_count = current_path['current_path_entries'][1] %}
+{% set file_icons = {
+    'ims': 'bi-file-earmark-image ffb-icon-image',
+    'tif': 'bi-file-earmark-image ffb-icon-image',
+    'tiff': 'bi-file-earmark-image ffb-icon-image',
+    'nd2': 'bi-file-earmark-image ffb-icon-image',
+    'czi': 'bi-file-earmark-image ffb-icon-image',
+    'zarr': 'bi-boxes ffb-icon-data',
+    'array': 'bi-file-earmark-binary ffb-icon-data',
+    'ilp': 'bi-file-earmark-bar-graph ffb-icon-data',
+    'csv': 'bi-file-earmark-spreadsheet ffb-icon-csv',
+    'info': 'bi-file-earmark-text ffb-icon-text',
+    'json': 'bi-file-earmark-code ffb-icon-text',
+    'weave': 'bi-file-earmark-code ffb-icon-text'
+} %}
 
-.folder-link,
-.brain-file-btn > span {
-    flex: 1 1 auto;
-    min-width: 0;
-}
-
-.tile-action {
-    align-items: center;
-    background: transparent;
-    border: 0;
-    border-radius: .25rem;
-    color: #212529;
-    cursor: pointer;
-    display: inline-flex;
-    flex: 0 0 2.5rem;
-    font-size: 1.35rem;
-    height: 2.25rem;
-    justify-content: center;
-    line-height: 1;
-    padding: 0;
-}
-
-.tile-action:hover,
-.tile-action:focus-visible {
-    background-color: rgba(33, 37, 41, .12);
-}
-
-.tile-action:focus-visible {
-    outline: 2px solid #212529;
-    outline-offset: -2px;
-}
-
-.file-path {
-    cursor: default;
-}
-</style>
-
-{# This displays a link to the parent directory above table #}
-<div class="container-fluid px-0">
-    {% if not current_path['parent_is_root'] %}
-
-        <div id="parent-link" class="file-dir ps-5 parent-path">
-            <a href="{{ current_path['parent_path'] }}">
-                [Parent] {{  current_path['parent_folder_name'] }}
-            </a>
-        </div>
-        {% else %}
-        <div id="parent-link" class="file-dir ps-5 parent-path">
-            <a href="{{ current_path['parent_path'] }}">
-                [Top Level]
-            </a>
-        </div>
-
-    {% endif %}
-
-{# This is to describe the current directory and stats in the table #}
-<table id="myTable" class="w-100">
-    <thead>
-    <tr class="bg-light">
-        <th class="w-50">Dir | File</th>
-       
-        <th>Updated</th>
-        <th>Size</th>
-    </tr>
-    </thead>
-
-    <tr class="">
-        <td class="file-dir ps-5 dir-path">
-            {% if not current_path['parent_is_root'] %}
-            <a class="" href="{{ current_path['parent_path'] }}">
-                {{ current_path['parent_folder_name'] }}
-            </a>
-            {% else %}
-            <a class="" href="{{ current_path['parent_path'] }}">
-            [top level]
-            </a>
-            {% endif %}
-        </td>
-        <td class="">
-            {{ current_path['current_path_modtime'] }}
-        </td>
-        <td class="">
-            D: {{ current_path['current_path_entries'][0] }} F: {{ current_path['current_path_entries'][1] }}
-        </td>
-    </tr>   
-
-{# This is to describe all directories and stats in the current directory #}
-{% for dir in current_path['dirs'] %}
-    <tr class="file-row">
-        <td class="file-dir ps-5 subdir-path"><span class="d-none sort-hack">0</span>
-            <div class="folder-item" data-fdata='{{ dir | tojson }}'>
-                <a class="ms-3 folder-link" href="{{ dir }}">{{ current_path['dirs_name'][loop.index0] }}</a>
-                <button type="button" class="tile-action folder-action"
-                    data-fdata='{{ dir | tojson }}'
-                    data-bs-toggle="modal" data-bs-target="#brainFolderModal"
-                    aria-label="Open options for {{ current_path['dirs_name'][loop.index0] }}"
-                    title="Folder options"><span aria-hidden="true">&#8942;</span></button>
-            </div>
-        </td>
-        <td class="">
-            {{ current_path['dirs_modtime'][loop.index0] }}
-        </td>
-        <td class="">
-            D: {{ current_path['dirs_entries'][loop.index0][0] }} F: {{ current_path['dirs_entries'][loop.index0][1] }}
-        </td>
-    </tr>
-        {% endfor %}
-        
-        {# This is to describe all files and stats in the current directory #}
-        {% for file in current_path['files'] %}
-
-    <tr class="file-row">
-        <td class="file-dir ps-5 file-path" ><span class="d-none sort-hack">1</span>
-            
-            <div class="brain-file-btn"
-                data-fdata='{{ current_path['files_json'][file] | tojson }}'
-                data-filename="{{ current_path['files_name'][loop.index0] }}"
-                data-fileslug="{{ current_path['files_dl'][loop.index0] }}"
-    
-                data-filesize="{{ current_path['files_size'][loop.index0] }}"
-                data-updated="{{ current_path['files_modtime'][loop.index0] }}"
-                >
-                <span class="ms-4">{{ current_path['files_name'][loop.index0] }}</span>
-                <button type="button" class="tile-action file-action"
-                    data-fdata='{{ current_path['files_json'][file] | tojson }}'
-                    data-bs-toggle="modal" data-bs-target="#brainModal"
-                    aria-label="Open options for {{ current_path['files_name'][loop.index0] }}"
-                    title="File options"><span aria-hidden="true">&#8942;</span></button>
-            </div>
-             
-        </td>
-        <td class="">
-            {{ current_path['files_modtime'][loop.index0] }}
-        </td>
-        <td class=""><span class="d-none sort-hack">{{ current_path['files_size'][loop.index0][2] }}</span>
-            S: {{ current_path['files_size'][loop.index0][0] }} {{ current_path['files_size'][loop.index0][1] }}
-        </td>
-    </tr>
-{% endfor %}
-</table>
+<div class="ffb-toolbar d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <span class="ffb-chip"><i class="bi bi-folder-fill"></i>{{ folder_count }} folder{{ '' if folder_count == 1 else 's' }}</span>
+        <span class="ffb-chip"><i class="bi bi-file-earmark"></i>{{ file_count }} file{{ '' if file_count == 1 else 's' }}</span>
+        <span class="ffb-updated"><i class="bi bi-clock-history"></i>Updated {{ current_path['current_path_modtime'] }}</span>
+    </div>
 </div>
-<!-- Button trigger modal -->
 
-  
-  <!-- File Modal -->
-  <div class="modal fade" id="brainModal" tabindex="-1" aria-labelledby="brainModalLabel" aria-hidden="true">
-    <div class="modal-dialog w-75">
-      <div class="modal-content">
-        <div class="modal-header header">
-          <h5 class="modal-title" id="brainModalLabel">File Options</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>File Size: <span id="brainModalFileSize"></span></p>
-          <p>Last Updated: <span id="brainModalUpdated"></span></p>
-        </div>
-        <div class="modal-footer">
-          <!-- <a href="#" type="button" id="brainModalNgSlug" class="btn btn-primary btn-sm" target="ngwindow">View on NG</a> -->
-          <a href="#" type="button" id="brainModalFileSlug" class="btn btn-primary btn-sm" target="dlwindow">Download</a>
-          {% if brainpi_enabled %}
-          <a id="brainModalBrainPi" class="btn btn-primary btn-sm d-none" target="_blank" rel="noopener noreferrer">BrAinPI</a>
-          {% endif %}
-<!--          <button  type="button" id="brainModalFilePath" class="btn btn-primary btn-sm" >Path Info</button>-->
-          <button type="button" id="brainModalSelectBtn" class="btn btn-primary btn-sm">Select File</button>
-<!--           <a href="#" type="button" id="brainModalFileInfo" class="btn btn-primary btn-sm" target="nginfowindow">NG Info</a>-->
-          {% if buttons is defined and buttons %}
-            {% for button in buttons %}
-              {% include button %}
-            {% endfor %}
-          {% endif %}
-          <button type="button" id="closeFileModalBtn" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-        </div>
-      </div>
+<div class="card ffb-card ffb-table-wrapper">
+    <div class="table-responsive">
+        <table id="myTable" class="table table-hover align-middle mb-0 ffb-table">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Last modified</th>
+                    <th scope="col" class="text-end">Size</th>
+                    <th scope="col" class="ffb-actions-col text-end"><span class="visually-hidden">Actions</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dir in current_path['dirs'] %}
+                <tr class="ffb-row-dir">
+                    <td data-order="0">
+                        <div class="d-flex align-items-center gap-2 min-w-0">
+                            <i class="bi bi-folder-fill ffb-file-icon ffb-icon-dir" aria-hidden="true"></i>
+                            <a class="ffb-name-link text-truncate" href="{{ dir }}">{{ current_path['dirs_name'][loop.index0] }}</a>
+                        </div>
+                    </td>
+                    <td class="ffb-cell-muted">{{ current_path['dirs_modtime'][loop.index0] }}</td>
+                    <td class="ffb-cell-muted text-end">&mdash;</td>
+                    <td class="text-end">
+                        <button type="button" class="ffb-icon-btn"
+                            data-fdata='{{ dir | tojson }}'
+                            data-bs-toggle="modal" data-bs-target="#brainFolderModal"
+                            aria-label="Open options for {{ current_path['dirs_name'][loop.index0] }}"
+                            title="Folder options"><i class="bi bi-three-dots-vertical" aria-hidden="true"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% for file in current_path['files'] %}
+                {% set fname = current_path['files_name'][loop.index0] %}
+                {% set fparts = fname.rsplit('.', 1) %}
+                {% set fext = fparts[1] | lower if fparts | length == 2 else '' %}
+                {% set fsize = current_path['files_size'][loop.index0] %}
+                <tr class="ffb-row-file">
+                    <td data-order="1">
+                        <div class="d-flex align-items-center gap-2 min-w-0">
+                            <i class="ffb-file-icon {{ file_icons.get(fext, 'bi-file-earmark ffb-icon-default') }}" aria-hidden="true"></i>
+                            <span class="ffb-file-name text-truncate">{{ fname }}</span>
+                        </div>
+                    </td>
+                    <td class="ffb-cell-muted">{{ current_path['files_modtime'][loop.index0] }}</td>
+                    <td class="ffb-cell-muted text-end" data-order="{{ fsize[2] }}">{{ fsize[0] }} {{ fsize[1] }}</td>
+                    <td class="text-end">
+                        <button type="button" class="ffb-icon-btn"
+                            data-fdata='{{ current_path['files_json'][file] | tojson }}'
+                            data-bs-toggle="modal" data-bs-target="#brainModal"
+                            aria-label="Open options for {{ fname }}"
+                            title="File options"><i class="bi bi-three-dots-vertical" aria-hidden="true"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-  </div>
+</div>
 
-
-  <!-- Folder Modal -->
-  <div class="modal fade" id="brainFolderModal" tabindex="-1" aria-labelledby="brainModalLabel" aria-hidden="true">
-    <div class="modal-dialog w-75">
-      <div class="modal-content">
-        <div class="modal-header header">
-          <h5 class="modal-title">Options</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- File Modal -->
+<div class="modal fade" id="brainModal" tabindex="-1" aria-labelledby="brainModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered ffb-modal-dialog">
+        <div class="modal-content ffb-modal-content">
+            <div class="modal-header ffb-modal-header">
+                <div class="d-flex align-items-center gap-2 min-w-0">
+                    <i class="bi bi-file-earmark ffb-modal-icon" aria-hidden="true"></i>
+                    <div class="min-w-0">
+                        <div class="ffb-modal-kicker">File</div>
+                        <h6 class="modal-title text-truncate" id="brainModalLabel">File Options</h6>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body ffb-modal-body">
+                <div class="ffb-meta">
+                    <div class="ffb-meta-row"><span class="ffb-meta-label">File size</span><span class="ffb-meta-value" id="brainModalFileSize">&mdash;</span></div>
+                    <div class="ffb-meta-row"><span class="ffb-meta-label">Last updated</span><span class="ffb-meta-value" id="brainModalUpdated">&mdash;</span></div>
+                </div>
+            </div>
+            <div class="modal-footer ffb-modal-footer">
+                <a href="#" type="button" id="brainModalFileSlug" class="btn btn-sm btn-outline-primary" target="dlwindow"><i class="bi bi-download me-1"></i>Download</a>
+                {% if brainpi_enabled %}
+                <a id="brainModalBrainPi" class="btn btn-sm btn-outline-primary d-none" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right me-1"></i>BrAinPI</a>
+                {% endif %}
+                {% if buttons is defined and buttons %}
+                    {% for button in buttons %}
+                        {% include button %}
+                    {% endfor %}
+                {% endif %}
+                <button type="button" id="brainModalSelectBtn" class="btn btn-sm btn-primary"><i class="bi bi-check2 me-1"></i>Select File</button>
+                <button type="button" id="closeFileModalBtn" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
         </div>
-        <div class="modal-body">
-          <p>Folder: <span id="brainFolderModalText"></span></p>
-
-        </div>
-        <div class="modal-footer">
-          <!-- <a href="#" type="button" id="brainModalNgSlug" class="btn btn-primary btn-sm" target="ngwindow">View on NG</a> -->
-<!--          <button  type="button" id="brainModalFolderPath" class="btn btn-primary btn-sm" >Path Info</button>-->
-          {% if brainpi_enabled %}
-          <a id="brainFolderModalBrainPi" class="btn btn-primary btn-sm d-none" target="_blank" rel="noopener noreferrer">BrAinPI</a>
-          {% endif %}
-          <button type="button" id="brainFolderModalSelectBtn" class="btn btn-primary btn-sm">Select Folder</button>
-          <!-- <a href="#" type="button" id="brainModalFileInfo" class="btn btn-primary btn-sm" target="nginfowindow">NG Info</a> -->
-          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-        </div>
-      </div>
     </div>
-  </div>
-    {% if modals is defined and modals %}
-        {% for modal in modals %}
-            {% include modal %}
-        {% endfor %}
-    {% endif %}
+</div>
+
+<!-- Folder Modal -->
+<div class="modal fade" id="brainFolderModal" tabindex="-1" aria-labelledby="brainFolderModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered ffb-modal-dialog">
+        <div class="modal-content ffb-modal-content">
+            <div class="modal-header ffb-modal-header">
+                <div class="d-flex align-items-center gap-2 min-w-0">
+                    <i class="bi bi-folder-fill ffb-modal-icon" aria-hidden="true"></i>
+                    <div class="min-w-0">
+                        <div class="ffb-modal-kicker">Folder</div>
+                        <h6 class="modal-title text-truncate" id="brainFolderModalTitle">Folder Options</h6>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body ffb-modal-body">
+                <div class="ffb-meta">
+                    <div class="ffb-meta-row"><span class="ffb-meta-label">Folder</span><span class="ffb-meta-value text-truncate" id="brainFolderModalText">&mdash;</span></div>
+                </div>
+            </div>
+            <div class="modal-footer ffb-modal-footer">
+                {% if brainpi_enabled %}
+                <a id="brainFolderModalBrainPi" class="btn btn-sm btn-outline-primary d-none" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right me-1"></i>BrAinPI</a>
+                {% endif %}
+                <button type="button" id="brainFolderModalSelectBtn" class="btn btn-sm btn-primary"><i class="bi bi-check2 me-1"></i>Select Folder</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if modals is defined and modals %}
+    {% for modal in modals %}
+        {% include modal %}
+    {% endfor %}
+{% endif %}

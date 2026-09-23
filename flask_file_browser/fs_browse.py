@@ -49,9 +49,9 @@ def time_format(time_from_os_stat):
         str: A string in the format "YYYY-MM-DD HH:mm".
     """
     if isinstance(time_from_os_stat, (int,float)):
-        return datetime.datetime.fromtimestamp(time_from_os_stat).strftime("%Y-%m-%d %H:%I")
+        return datetime.datetime.fromtimestamp(time_from_os_stat).strftime("%Y-%m-%d %H:%M")
     elif isinstance(time_from_os_stat, datetime.datetime):
-        return time_from_os_stat.strftime("%Y-%m-%d %H:%I")
+        return time_from_os_stat.strftime("%Y-%m-%d %H:%M")
 
 
 def get_path_data(base, request):
@@ -155,7 +155,7 @@ def get_path_data(base, request):
         current_path['html_path_split'] = (bp_tuple,) + html_path_split_no_bp
         current_path['current_path'] = bp_prefix + base[:-1]
         current_path['current_path_name'] = bp_prefix + '/' + base[1:-1]
-        current_path['current_path_modtime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%I")
+        current_path['current_path_modtime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         current_path['current_path_entries'] = (len(to_browse),0)
 
         current_path['parent_path'] = bp_prefix + base[:-1]
