@@ -98,17 +98,26 @@ body.ffb-body .ffb-main {
     vertical-align: -.125em;
 }
 
-/* Breadcrumb strip under the main navbar row */
-.ffb-navbar-path {
-    border-top: 1px solid rgba(255, 255, 255, .08);
-    background: rgba(255, 255, 255, .03);
+/* Breadcrumb inline in the main navbar row (left, next to the brand) */
+.ffb-breadcrumb-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.ffb-breadcrumb-wrap::-webkit-scrollbar {
+    display: none;
 }
 
 .ffb-breadcrumb {
     --bs-breadcrumb-divider-color: var(--ffb-navbar-muted);
+    flex-wrap: nowrap;
     margin: 0;
-    padding: .4rem 0;
+    padding: .25rem;
     font-size: .875rem;
+    white-space: nowrap;
 }
 
 .ffb-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
@@ -146,7 +155,9 @@ body.ffb-body .ffb-main {
 /* ---------------------------------------------------------------- layout */
 
 .ffb-main {
-    padding: 1.5rem 0 2.5rem;
+    /* Same horizontal gutter as .ffb-container so the navbar, content and
+       footer edges all align on wide monitors. */
+    padding: 1.5rem 1rem 2.5rem;
 }
 
 .ffb-explorer {

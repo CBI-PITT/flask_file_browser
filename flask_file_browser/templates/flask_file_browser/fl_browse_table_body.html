@@ -115,7 +115,9 @@
                         {% include button %}
                     {% endfor %}
                 {% endif %}
+                {% if picker_mode %}
                 <button type="button" id="brainModalSelectBtn" class="btn btn-sm btn-primary"><i class="bi bi-check2 me-1"></i>Select File</button>
+                {% endif %}
                 <button type="button" id="closeFileModalBtn" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -145,7 +147,9 @@
                 {% if brainpi_enabled %}
                 <a id="brainFolderModalBrainPi" class="btn btn-sm btn-outline-primary d-none" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right me-1"></i>BrAinPI</a>
                 {% endif %}
+                {% if picker_mode %}
                 <button type="button" id="brainFolderModalSelectBtn" class="btn btn-sm btn-primary"><i class="bi bi-check2 me-1"></i>Select Folder</button>
+                {% endif %}
                 <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>

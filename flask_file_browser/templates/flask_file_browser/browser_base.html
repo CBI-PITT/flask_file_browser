@@ -13,11 +13,12 @@
 <body class="ffb-body">
 
     <nav class="navbar navbar-expand-lg ffb-navbar sticky-top" data-bs-theme="dark">
-        <div class="container-xxl ffb-container">
+        <div class="container-fluid ffb-container">
             <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('flask_file_browser.browse_fs') }}">
                 <img class="ffb-brand-logo" src="{{ url_for('flask_file_browser.static', filename='flask_file_browser/images/cbi_logo.png') }}" alt="CBI logo">
                 <span class="fw-semibold">{% if current_path is defined and current_path['header'] %}{{ current_path['header'] }}{% else %}CBI File Browser{% endif %}</span>
             </a>
+            {% block breadcrumb %}{% endblock %}
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#ffbNavbar" aria-controls="ffbNavbar" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -41,11 +42,6 @@
                 </ul>
             </div>
         </div>
-        <div class="ffb-navbar-path">
-            <div class="container-xxl ffb-container">
-                {% block breadcrumb %}{% endblock %}
-            </div>
-        </div>
     </nav>
 
     <main class="ffb-main">
@@ -53,7 +49,7 @@
     </main>
 
     <footer class="ffb-footer">
-        <div class="container-xxl ffb-container ffb-footer-inner">
+        <div class="container-fluid ffb-container ffb-footer-inner">
             <span class="ffb-footer-text">{% if current_path is defined and current_path['footer'] %}{{ current_path['footer'] }}{% else %}Center for Biologic Imaging{% endif %}</span>
             {% if current_path is defined and current_path['current_path'] %}
             <span class="ffb-footer-path font-monospace">{{ current_path['current_path'] }}</span>

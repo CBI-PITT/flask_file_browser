@@ -99,7 +99,10 @@ brainModalEl.addEventListener('show.bs.modal', function (event) {
     const parts = fdata.files.split('/').slice(3);
     dynamicLink = "/{{ current_path['html_path_split'][0] }}/get_file_path/" + parts.join('/');
 
-    selpath.dataset.dynamicLink = dynamicLink;
+    // The modal element exists in both picker and browse contexts; the Select
+    // button only exists in picker mode.
+    event.target.dataset.dynamicLink = dynamicLink;
+    if (selpath) selpath.dataset.dynamicLink = dynamicLink;
   }
   else{
     alert("No path available to copy.");
@@ -123,8 +126,10 @@ brainFolderModalEl.addEventListener('show.bs.modal', function (event) {
   const parts = fdata.split('/').slice(3);
   event.target.querySelector('#brainFolderModalText').innerHTML = parts[parts.length - 1];
   const dynamicLink = "/{{ current_path['html_path_split'][0] }}/get_file_path/" + parts.join('/');
-  folderselpath.dataset.dynamicLink = dynamicLink;
-  folderselpath.dataset.browserPath = fdata;
+  if (folderselpath) {
+    folderselpath.dataset.dynamicLink = dynamicLink;
+    folderselpath.dataset.browserPath = fdata;
+  }
   {% if brainpi_enabled %}
   configureBrainPiButton(
       event.target.querySelector('#brainFolderModalBrainPi'),
@@ -139,6 +144,9 @@ function getFieldId() {
     return window.frameElement?.dataset?.fieldId || null;
 }
 
+// The Select buttons only exist in picker mode (embed page); the full-page
+// browser does not render them, so the handlers are attached conditionally.
+if (selpath) {
 document.getElementById("brainModalSelectBtn").addEventListener("click", function () {
     const fieldId = getFieldId();
     const filePath = selpath.dataset.dynamicLink;
@@ -172,7 +180,9 @@ document.getElementById("brainModalSelectBtn").addEventListener("click", functio
             alert("Failed to fetch the file path.");
         });
 });
+}
 
+if (folderselpath) {
 document.getElementById("brainFolderModalSelectBtn").addEventListener("click", function () {
     const fieldId = getFieldId();
     const filePath = folderselpath.dataset.dynamicLink;
@@ -205,4 +215,5 @@ document.getElementById("brainFolderModalSelectBtn").addEventListener("click", f
         });
 
 });
+}
 </script>

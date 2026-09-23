@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<nav aria-label="Breadcrumb">
+<nav aria-label="Breadcrumb" class="ffb-breadcrumb-wrap">
     <ol class="breadcrumb ffb-breadcrumb">
         {% for name, path in current_path['all_parents'] | reverse %}
         {% if loop.first %}
