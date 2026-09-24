@@ -7,6 +7,7 @@ from flask import (
     send_file,
     jsonify
     )
+from flask_login import current_user
 
 import glob, os
 import sys
@@ -79,12 +80,18 @@ def get_path_map(settings_config_parser_object, user_authenticated=False):
 
 
 def from_html_to_path(req_path, path_map):
-    # print('UTIL line 101: {}'.format(req_path))
     html_path = split_html(req_path)
-    # print('UTIL line 103: {}'.format(html_path))
-    return os.path.join(
-        path_map[html_path[1]], # returns the true FS path
-        *html_path[2:]) # returns a unpacked list of all subpaths from html_path[1]
+    root = path_map[html_path[1]] # returns the true FS path
+    for segment in html_path[2:]:
+        if segment in ('..', '.'):
+            raise PermissionError(f"Illegal path segment: {segment}")
+    result = os.path.join(root, *html_path[2:]) # returns a unpacked list of all subpaths from html_path[1]
+    # The resolved path must stay inside the browsable root (symlinks included)
+    real_root = os.path.realpath(root)
+    real_result = os.path.realpath(result)
+    if real_result != real_root and not real_result.startswith(real_root + os.sep):
+        raise PermissionError(f"Path escapes the browsable root: {result}")
+    return result
 
 
 def from_path_to_html(path, path_map, req_path, entry_point):
@@ -297,7 +304,7 @@ def get_html_split_and_associated_file_path(settings,request):
         tuple: A tuple containing the split HTML path and the file system path.
     """
     # settings = config.settings
-    path_map = get_path_map(settings,user_authenticated=True) #<-- Force user_auth=True to get all possible paths, in this way all ng links will be shareable to anyone
+    path_map = get_path_map(settings, user_authenticated=current_user.is_authenticated)
     datapath = from_html_to_path(request.path, path_map)
     
     path_split = split_html(request.path)

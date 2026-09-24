@@ -111,6 +111,7 @@
 import os
 import flask
 from flask import request, render_template, Blueprint, jsonify
+from flask_login import login_required
 from .utils import get_config,get_html_split_and_associated_file_path,split_html
 from flask_file_browser import auth
 
@@ -177,6 +178,7 @@ def init_blueprint(app, settings=settings,prefix='/browser'):
         )
 
     @extended_app.route('/get_file_path/<path:html_path>', methods=['GET'])
+    @login_required
     def file_path(html_path):
         url_tuple = split_html(request.path)
         bp_tuple = url_tuple[0]
@@ -184,15 +186,22 @@ def init_blueprint(app, settings=settings,prefix='/browser'):
         request.path ='/' + '/'.join(url_tuple[1:])
         # (f"Full path: {request.path}")  # The full path requested
         # print(f"html_path: {html_path}") # The dynamic subpath
-        file_path = get_html_split_and_associated_file_path(settings,request)
+        try:
+            file_path = get_html_split_and_associated_file_path(settings,request)
+        except (PermissionError, KeyError):
+            return {"error": "Path not allowed"}, 403
         return {"file_path": f"{file_path[1]}"}
 
     @extended_app.route('/imaris_info/<path:html_path>', methods=['GET'])
+    @login_required
     def imaris_info(html_path):
         from imaris_ims_file_reader import ims
         url_tuple = split_html(request.path)
         request.path ='/' + '/'.join(url_tuple[1:])
-        file_path = get_html_split_and_associated_file_path(settings,request)
+        try:
+            file_path = get_html_split_and_associated_file_path(settings,request)
+        except (PermissionError, KeyError):
+            return {"error": "Path not allowed"}, 403
         f = ims(file_path[1])
         table = f"<p>Channels: {f.Channels}</p>"
         table = table + '''

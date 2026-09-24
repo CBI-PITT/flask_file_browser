@@ -475,6 +475,7 @@ def initiate_browseable(extended_app,settings):
     base_json = '/dir_json/'
     @extended_app.route(base_json + '<path:req_path>')
     @extended_app.route(base_json, defaults={'req_path': ''})
+    @login_required
     def browse_fs_json(req_path):
         
         
