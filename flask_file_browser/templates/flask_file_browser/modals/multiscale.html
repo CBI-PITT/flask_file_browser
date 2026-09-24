@@ -37,8 +37,14 @@
                 }
             }
             // let filePath = document.querySelector('#brainModalFilePath');
-            let filePath = document.querySelector('#brainModalSelectBtn');
-            let link = filePath.dataset.dynamicLink.replace("get_file_path", "imaris_info")
+            // The link is stored on the modal element by the show handler, so
+            // Multiscale Info works in both the picker and the full-page
+            // browser (where the Select button is not rendered).
+            let modalEl = document.querySelector('#brainModal');
+            let link = modalEl && modalEl.dataset.dynamicLink
+                ? modalEl.dataset.dynamicLink.replace("get_file_path", "imaris_info")
+                : null;
+            if (!link) return;
             fetch(link)
             .then(response => response.json())
             .then(data => {

@@ -49,9 +49,9 @@ def time_format(time_from_os_stat):
         str: A string in the format "YYYY-MM-DD HH:mm".
     """
     if isinstance(time_from_os_stat, (int,float)):
-        return datetime.datetime.fromtimestamp(time_from_os_stat).strftime("%Y-%m-%d %H:%I")
+        return datetime.datetime.fromtimestamp(time_from_os_stat).strftime("%Y-%m-%d %H:%M")
     elif isinstance(time_from_os_stat, datetime.datetime):
-        return time_from_os_stat.strftime("%Y-%m-%d %H:%I")
+        return time_from_os_stat.strftime("%Y-%m-%d %H:%M")
 
 
 def get_path_data(base, request):
@@ -155,7 +155,7 @@ def get_path_data(base, request):
         current_path['html_path_split'] = (bp_tuple,) + html_path_split_no_bp
         current_path['current_path'] = bp_prefix + base[:-1]
         current_path['current_path_name'] = bp_prefix + '/' + base[1:-1]
-        current_path['current_path_modtime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%I")
+        current_path['current_path_modtime'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         current_path['current_path_entries'] = (len(to_browse),0)
 
         current_path['parent_path'] = bp_prefix + base[:-1]
@@ -433,8 +433,44 @@ def initiate_browseable(extended_app,settings):
             )
         else:
             return out
-    
-    
+
+
+    # Chrome-less version of the browse page used for embedding in modals/iframes
+    # base entrypoint must always begin and end with '/' --> /my_entry/
+    base_embed = '/dir_embed/'
+    @extended_app.route(base_embed + '<path:req_path>')
+    @extended_app.route(base_embed, defaults={'req_path': ''})
+    def browse_fs_embed(req_path):
+
+        out = get_path_data(base_embed, request)
+
+        if isinstance(out,tuple) and out[0] == 'render_template':
+            modal_dir = os.path.join(os.path.dirname(__file__), 'templates', 'flask_file_browser', 'modals')
+            button_dir = os.path.join(os.path.dirname(__file__), 'templates', 'flask_file_browser', 'triggers')
+            modal_templates = [
+                f'flask_file_browser/modals/{filename}' for filename in os.listdir(modal_dir) if
+                filename.endswith('.html')
+            ]
+            button_templates = [
+                f'flask_file_browser/triggers/{filename}' for filename in os.listdir(button_dir) if
+                filename.endswith('.html')
+            ]
+
+            page_description, current_path = out[1:]
+            return render_template(
+                'flask_file_browser/fl_browse_table_dir_embed.html',
+                current_path={**page_description, **current_path},
+                user=auth.user_info(),
+                gtag=settings.get('GA4', 'gtag'),
+                modals=modal_templates,
+                buttons=button_templates,
+                brainpi_enabled=brainpi_enabled,
+                brainpi_base_url=brainpi_base_url
+            )
+        else:
+            return out
+
+
     # base entrypoint must always begin and end with '/' --> /my_entry/
     base_json = '/dir_json/'
     @extended_app.route(base_json + '<path:req_path>')
@@ -477,6 +513,14 @@ def initiate_NOT_browseable(app, settings):
     @app.route(base + '<path:req_path>')
     @app.route(base, defaults={'req_path': ''})
     def browse_fs(req_path):
+        abort(404)
+
+    # Chrome-less embed version, disabled together with the main browse route
+    base_embed = '/dir_embed/'
+
+    @app.route(base_embed + '<path:req_path>')
+    @app.route(base_embed, defaults={'req_path': ''})
+    def browse_fs_embed(req_path):
         abort(404)
 
     return app

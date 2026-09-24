@@ -1,0 +1,661 @@
+/*
+ * CBI File Browser - design tokens and component styles.
+ * Loaded by browser_base.html (full pages) and fl_browse_table_dir_embed.html (embed picker).
+ * Requires Bootstrap 5.3 CSS and Bootstrap Icons.
+ */
+
+:root {
+    --ffb-bg: #f4f6f8;
+    --ffb-surface: #ffffff;
+    --ffb-border: #e4e8ee;
+    --ffb-muted: #64748b;
+    --ffb-ink: #1e293b;
+    --ffb-accent: #0d6efd;
+    --ffb-accent-soft: #eaf2ff;
+    --ffb-navbar-bg: #1b2129;
+    --ffb-navbar-ink: #e8edf4;
+    --ffb-navbar-muted: #9aa7b8;
+    --ffb-radius: .75rem;
+    --ffb-radius-sm: .5rem;
+    --ffb-shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 1px 3px rgba(15, 23, 42, .08);
+    --ffb-shadow-lg: 0 8px 24px rgba(15, 23, 42, .12);
+    --ffb-icon-dir: #f0b429;
+    --ffb-icon-image: #3b82f6;
+    --ffb-icon-data: #8b5cf6;
+    --ffb-icon-csv: #16a34a;
+    --ffb-icon-text: #64748b;
+    --ffb-icon-default: #94a3b8;
+    --ffb-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body.ffb-body {
+    background: var(--ffb-bg);
+    color: var(--ffb-ink);
+    font-family: var(--ffb-font);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body.ffb-body .ffb-main {
+    flex: 1 0 auto;
+    width: 100%;
+}
+
+/* ---------------------------------------------------------------- navbar */
+
+.ffb-navbar {
+    background: var(--ffb-navbar-bg);
+    color: var(--ffb-navbar-ink);
+    padding: 0;
+}
+
+.ffb-navbar .navbar-brand {
+    color: var(--ffb-navbar-ink);
+    padding-top: .75rem;
+    padding-bottom: .75rem;
+    min-width: 0;
+}
+
+.ffb-navbar .navbar-brand:hover,
+.ffb-navbar .navbar-brand:focus {
+    color: #ffffff;
+}
+
+.ffb-brand-logo {
+    height: 2.25rem;
+    width: auto;
+    border-radius: .375rem;
+    background: #ffffff;
+    padding: .125rem;
+}
+
+.ffb-navbar .navbar-toggler {
+    border-color: rgba(255, 255, 255, .25);
+    color: var(--ffb-navbar-ink);
+}
+
+.ffb-navbar .navbar-toggler-icon {
+    filter: invert(1) grayscale(1) brightness(2);
+}
+
+.ffb-navbar .nav-link {
+    color: var(--ffb-navbar-muted);
+    font-size: .925rem;
+    padding: .5rem .75rem;
+    border-radius: var(--ffb-radius-sm);
+    transition: color .15s ease, background-color .15s ease;
+}
+
+.ffb-navbar .nav-link:hover,
+.ffb-navbar .nav-link:focus {
+    color: #ffffff;
+    background: rgba(255, 255, 255, .08);
+}
+
+.ffb-navbar .nav-link i {
+    font-size: 1rem;
+    vertical-align: -.125em;
+}
+
+/* Breadcrumb inline in the main navbar row (left, next to the brand) */
+.ffb-breadcrumb-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.ffb-breadcrumb-wrap::-webkit-scrollbar {
+    display: none;
+}
+
+.ffb-breadcrumb {
+    --bs-breadcrumb-divider-color: var(--ffb-navbar-muted);
+    flex-wrap: nowrap;
+    margin: 0;
+    padding: .25rem;
+    font-size: .875rem;
+    white-space: nowrap;
+}
+
+.ffb-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    color: var(--ffb-navbar-muted);
+}
+
+.ffb-breadcrumb .breadcrumb-item a {
+    color: var(--ffb-navbar-muted);
+    text-decoration: none;
+    transition: color .15s ease;
+}
+
+.ffb-breadcrumb .breadcrumb-item a:hover,
+.ffb-breadcrumb .breadcrumb-item a:focus {
+    color: #ffffff;
+}
+
+.ffb-breadcrumb .breadcrumb-item.active {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.ffb-breadcrumb .breadcrumb-item,
+.ffb-breadcrumb .breadcrumb-item a {
+    max-width: 14rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ffb-crumb-home i {
+    vertical-align: -.1em;
+}
+
+/* ---------------------------------------------------------------- layout */
+
+.ffb-main {
+    /* Same horizontal gutter as .ffb-container so the navbar, content and
+       footer edges all align on wide monitors. */
+    padding: 1.5rem 1rem 2.5rem;
+}
+
+.ffb-explorer {
+    margin-bottom: 0;
+}
+
+.ffb-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+/* ---------------------------------------------------------------- toolbar */
+
+.ffb-toolbar {
+    margin-bottom: 1rem;
+}
+
+.ffb-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .3rem .75rem;
+    border-radius: 999px;
+    background: var(--ffb-surface);
+    border: 1px solid var(--ffb-border);
+    color: var(--ffb-ink);
+    font-size: .825rem;
+    font-weight: 500;
+    box-shadow: var(--ffb-shadow);
+}
+
+.ffb-chip i {
+    color: var(--ffb-accent);
+    font-size: .9rem;
+}
+
+.ffb-updated {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    color: var(--ffb-muted);
+    font-size: .825rem;
+}
+
+/* ---------------------------------------------------------------- table */
+
+.ffb-card {
+    background: var(--ffb-surface);
+    border: 1px solid var(--ffb-border);
+    border-radius: var(--ffb-radius);
+    box-shadow: var(--ffb-shadow);
+    overflow: hidden;
+}
+
+.ffb-table thead th {
+    background: #f8fafc;
+    color: var(--ffb-muted);
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--ffb-border);
+    padding: .75rem 1rem;
+    white-space: nowrap;
+}
+
+.ffb-table tbody td {
+    padding: .6rem 1rem;
+    border-color: #f1f5f9;
+    vertical-align: middle;
+}
+
+.ffb-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.ffb-name-link {
+    color: var(--ffb-ink);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color .15s ease;
+}
+
+.ffb-name-link:hover,
+.ffb-name-link:focus {
+    color: var(--ffb-accent);
+}
+
+.ffb-file-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.ffb-cell-muted {
+    color: var(--ffb-muted);
+    font-size: .875rem;
+    white-space: nowrap;
+}
+
+.ffb-actions-col {
+    width: 3.5rem;
+}
+
+.ffb-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ffb-radius-sm);
+    background: transparent;
+    color: var(--ffb-muted);
+    line-height: 1;
+    transition: background-color .15s ease, color .15s ease;
+}
+
+.ffb-icon-btn:hover,
+.ffb-icon-btn:focus-visible {
+    background: var(--ffb-accent-soft);
+    color: var(--ffb-accent);
+}
+
+.ffb-icon-btn i {
+    font-size: 1.1rem;
+}
+
+/* File-type icons (class list rendered by the table template) */
+.ffb-file-icon {
+    font-size: 1.15rem;
+    flex: 0 0 auto;
+}
+
+.ffb-icon-dir {
+    color: var(--ffb-icon-dir);
+}
+
+.ffb-icon-image {
+    color: var(--ffb-icon-image);
+}
+
+.ffb-icon-data {
+    color: var(--ffb-icon-data);
+}
+
+.ffb-icon-csv {
+    color: var(--ffb-icon-csv);
+}
+
+.ffb-icon-text {
+    color: var(--ffb-icon-text);
+}
+
+.ffb-icon-default {
+    color: var(--ffb-icon-default);
+}
+
+/* ---------------------------------------------------------------- modals */
+
+.ffb-modal-dialog {
+    max-width: 34rem;
+}
+
+.ffb-modal-content {
+    border: 1px solid var(--ffb-border);
+    border-radius: var(--ffb-radius);
+    box-shadow: var(--ffb-shadow-lg);
+}
+
+.ffb-modal-header {
+    align-items: center;
+    border-bottom: 1px solid var(--ffb-border);
+    padding: 1rem 1.25rem;
+}
+
+.ffb-modal-icon {
+    font-size: 1.6rem;
+    color: var(--ffb-accent);
+    background: var(--ffb-accent-soft);
+    border-radius: var(--ffb-radius-sm);
+    padding: .45rem;
+    flex: 0 0 auto;
+}
+
+.ffb-modal-kicker {
+    color: var(--ffb-muted);
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.ffb-modal-header .modal-title {
+    font-size: .975rem;
+    margin: 0;
+}
+
+.ffb-modal-body {
+    padding: 1rem 1.25rem;
+}
+
+.ffb-meta {
+    border: 1px solid var(--ffb-border);
+    border-radius: var(--ffb-radius-sm);
+    overflow: hidden;
+}
+
+.ffb-meta-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .6rem .9rem;
+    font-size: .9rem;
+}
+
+.ffb-meta-row + .ffb-meta-row {
+    border-top: 1px solid var(--ffb-border);
+}
+
+.ffb-meta-label {
+    color: var(--ffb-muted);
+}
+
+.ffb-meta-value {
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+.ffb-modal-footer {
+    border-top: 1px solid var(--ffb-border);
+    padding: .85rem 1.25rem;
+    gap: .5rem;
+}
+
+/* The multiscale trigger button is injected with Bootstrap primary classes
+   by its plugin partial; restyle it as an outline action to match the footer. */
+.ffb-modal-footer .btn.toggle-modal {
+    color: var(--ffb-accent);
+    background: var(--ffb-surface);
+    border: 1px solid var(--ffb-accent);
+}
+
+.ffb-modal-footer .btn.toggle-modal:hover,
+.ffb-modal-footer .btn.toggle-modal:focus {
+    color: #ffffff;
+    background: var(--ffb-accent);
+}
+
+/* ---------------------------------------------------------------- footer */
+
+.ffb-footer {
+    flex-shrink: 0;
+    border-top: 1px solid var(--ffb-border);
+    background: var(--ffb-surface);
+    padding: .9rem 0;
+}
+
+.ffb-footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+}
+
+.ffb-footer-text {
+    color: var(--ffb-muted);
+    font-size: .825rem;
+}
+
+.ffb-footer-path {
+    color: var(--ffb-muted);
+    font-size: .75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- auth pages */
+
+.ffb-auth-icon {
+    font-size: 2.5rem;
+    color: var(--ffb-accent);
+}
+
+.ffb-home-logo {
+    height: 5rem;
+    width: auto;
+}
+
+.ffb-motto {
+    letter-spacing: .02em;
+}
+
+/* ------------------------------------------------------------- DataTables */
+
+.ffb-table-wrapper .dataTables_wrapper {
+    padding: 0;
+}
+
+.ffb-table-wrapper .dataTables_wrapper .row:first-child {
+    padding: .85rem 1rem .5rem;
+    margin: 0;
+    align-items: center;
+}
+
+.ffb-table-wrapper .dataTables_wrapper .row:last-child {
+    padding: .75rem 1rem;
+    margin: 0;
+    border-top: 1px solid var(--ffb-border);
+    background: #fbfcfe;
+    border-radius: 0 0 var(--ffb-radius) var(--ffb-radius);
+}
+
+.ffb-table-wrapper .dataTables_filter {
+    text-align: right;
+}
+
+.ffb-table-wrapper .dataTables_filter label {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: 0;
+    font-size: .875rem;
+    color: var(--ffb-muted);
+}
+
+.ffb-table-wrapper .dataTables_filter input {
+    border: 1px solid var(--ffb-border);
+    border-radius: 999px;
+    padding: .35rem .9rem;
+    font-size: .875rem;
+    min-width: 14rem;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.ffb-table-wrapper .dataTables_filter input:focus {
+    border-color: var(--ffb-accent);
+    box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .12);
+}
+
+.ffb-table-wrapper .dataTables_length label {
+    margin-bottom: 0;
+    font-size: .875rem;
+    color: var(--ffb-muted);
+}
+
+.ffb-table-wrapper .dataTables_length select {
+    border: 1px solid var(--ffb-border);
+    border-radius: var(--ffb-radius-sm);
+    padding: .25rem .5rem;
+    font-size: .875rem;
+    margin: 0 .35rem;
+}
+
+.ffb-table-wrapper .dataTables_info {
+    font-size: .8rem;
+    color: var(--ffb-muted);
+    padding-top: 0;
+}
+
+.ffb-table-wrapper .dataTables_paginate {
+    padding-top: 0;
+}
+
+.ffb-table-wrapper .page-link {
+    border-radius: var(--ffb-radius-sm);
+    border-color: var(--ffb-border);
+    color: var(--ffb-ink);
+    font-size: .85rem;
+    padding: .3rem .65rem;
+}
+
+.ffb-table-wrapper .page-item.active .page-link {
+    background: var(--ffb-accent);
+    border-color: var(--ffb-accent);
+}
+
+.ffb-table-wrapper .page-item.disabled .page-link {
+    color: #cbd5e1;
+}
+
+.ffb-table-wrapper table.dataTable.no-footer {
+    border-bottom: 0;
+}
+
+/* --------------------------------------------------------------- embed mode */
+
+body.ffb-embed {
+    background: var(--ffb-surface);
+}
+
+body.ffb-embed .ffb-main,
+body.ffb-embed .ffb-toolbar {
+    margin: 0;
+    padding: .75rem;
+}
+
+body.ffb-embed .ffb-toolbar {
+    padding-bottom: .5rem;
+    margin-bottom: .5rem;
+}
+
+body.ffb-embed .ffb-card {
+    box-shadow: none;
+}
+
+/* Embed picker navigation strip: breadcrumbs (left) + up-one-level link (right) */
+body.ffb-embed .ffb-crumb-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    margin: 0;
+    padding: .75rem .75rem 0;
+}
+
+body.ffb-embed .ffb-crumb-row + .ffb-toolbar {
+    padding-top: .25rem;
+}
+
+body.ffb-embed .ffb-crumb-scroll {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+body.ffb-embed .ffb-crumb-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+/* Light-theme variant of the dark-navbar breadcrumb colors */
+.ffb-breadcrumb-embed {
+    --bs-breadcrumb-divider-color: var(--ffb-muted);
+    flex-wrap: nowrap;
+    margin: 0;
+    padding: .25rem;
+    font-size: .875rem;
+    white-space: nowrap;
+}
+
+.ffb-breadcrumb-embed .breadcrumb-item + .breadcrumb-item::before {
+    color: var(--ffb-muted);
+}
+
+.ffb-breadcrumb-embed .breadcrumb-item a {
+    color: var(--ffb-muted);
+    text-decoration: none;
+    transition: color .15s ease;
+}
+
+.ffb-breadcrumb-embed .breadcrumb-item a:hover,
+.ffb-breadcrumb-embed .breadcrumb-item a:focus {
+    color: var(--ffb-accent);
+}
+
+.ffb-breadcrumb-embed .breadcrumb-item.active {
+    color: var(--ffb-ink);
+    font-weight: 500;
+}
+
+.ffb-breadcrumb-embed .breadcrumb-item,
+.ffb-breadcrumb-embed .breadcrumb-item a {
+    max-width: 14rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ffb-breadcrumb-embed .ffb-crumb-home i {
+    vertical-align: -.1em;
+}
+
+.ffb-up-btn {
+    flex: 0 0 auto;
+    text-decoration: none;
+}
+
+/* ------------------------------------------------------------- responsive */
+
+@media (max-width: 575.98px) {
+    .ffb-main {
+        padding-top: 1rem;
+    }
+
+    .ffb-table-wrapper .dataTables_filter input {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .ffb-table-wrapper .dataTables_filter,
+    .ffb-table-wrapper .dataTables_length {
+        text-align: left;
+    }
+}
