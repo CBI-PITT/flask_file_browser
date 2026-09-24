@@ -113,3 +113,35 @@ def assets(html):
 
 def read_template(name):
     return (BROWSER_TPL / "flask_file_browser" / name).read_text()
+
+
+# --------------------------------------------------------------------------
+# Security fixtures (real blueprint behind a Flask test client)
+# --------------------------------------------------------------------------
+
+@pytest.fixture(scope="session")
+def security_app():
+    import sys
+    if str(REPO_ROOT) not in sys.path:
+        sys.path.insert(0, str(REPO_ROOT))
+    from flask import Flask
+    from flask_file_browser import routes
+    app = Flask(__name__)
+    app.secret_key = "browser-security-test-key"
+    routes.init_blueprint(app, settings=routes.settings, prefix="/browser")
+    return app
+
+
+@pytest.fixture()
+def security_client(security_app):
+    return security_app.test_client()
+
+
+@pytest.fixture()
+def security_login(security_client):
+    """Log the client in without LDAP (load_user accepts any id)."""
+    def _login(user_id="iana"):
+        with security_client.session_transaction() as sess:
+            sess["_user_id"] = user_id
+            sess["_fresh"] = True
+    return _login
