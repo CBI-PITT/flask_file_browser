@@ -165,6 +165,37 @@ def test_embed_page_chromeless(jinja_env):
     assert "navbar" not in body, "embed page must stay chrome-less (it renders inside the picker modal)"
 
 
+def test_embed_breadcrumbs_render(jinja_env):
+    """The chrome-less embed picker must render its own breadcrumb strip so
+    users can reach ancestor directories (the full page keeps its navbar one)."""
+    html = render_embed(jinja_env, make_ctx(base="dir_embed"))
+    assert "ffb-breadcrumb-embed" in html, "embed breadcrumb strip missing"
+    assert "bi-house-door-fill" in html, "home crumb missing in the embed strip"
+    # ancestors are links under the embed route base; the current dir is active
+    assert '<a href="/browser/dir_embed/world">' in html, "ancestor crumb not linked under /dir_embed/"
+    assert 'aria-current="page"' in html, "current directory crumb not marked active"
+    # the full page must not render the embed strip (its breadcrumb lives in the navbar)
+    full = render_full_page(jinja_env, make_ctx(base="dir"))
+    assert "ffb-breadcrumb-embed" not in full, "embed breadcrumb strip leaked onto the full page"
+
+    root_html = render_embed(jinja_env, make_ctx(base="dir_embed", root=True))
+    assert root_html.count("breadcrumb-item") == 1, "root listing should render a single home crumb"
+
+
+def test_embed_up_one_level(jinja_env):
+    """The embed picker gets an up-one-level link to the parent directory;
+    it disappears at the root listing (parent_path is a self-link there)."""
+    deep = render_embed(jinja_env, make_ctx(base="dir_embed"))
+    up_at = deep.find("ffb-up-btn")
+    assert up_at != -1, "up-one-level link missing in the embed picker"
+    assert deep.find('href="/browser/dir_embed/world"', up_at) != -1, (
+        "up link must point at the parent directory"
+    )
+
+    root_html = render_embed(jinja_env, make_ctx(base="dir_embed", root=True))
+    assert "ffb-up-btn" not in root_html, "up link must not render at the root listing"
+
+
 def test_route_base_consistency(jinja_env):
     fs_browse = (BROWSER_PKG / "fs_browse.py").read_text()
     assert "base_embed = '/dir_embed/'" in fs_browse, "embed route base renamed or removed"

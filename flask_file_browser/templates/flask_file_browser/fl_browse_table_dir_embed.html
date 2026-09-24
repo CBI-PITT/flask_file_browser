@@ -12,6 +12,31 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body class="ffb-embed">
+{# Compact navigation strip for the chrome-less embed picker: breadcrumbs plus
+   an up-one-level link so users are not limited to descending into folders.
+   Links stay under the /dir_embed/ route base, so navigation happens inside
+   the iframe. #}
+<div class="ffb-crumb-row">
+    <nav aria-label="Breadcrumb" class="ffb-crumb-scroll">
+        <ol class="breadcrumb ffb-breadcrumb ffb-breadcrumb-embed">
+            {% for name, path in current_path['all_parents'] | reverse %}
+            {% if loop.first %}
+            <li class="breadcrumb-item">
+                <a href="{{ path }}" class="ffb-crumb-home" aria-label="Top level"><i class="bi bi-house-door-fill"></i></a>
+            </li>
+            {% elif loop.last %}
+            <li class="breadcrumb-item active" aria-current="page">{{ name }}</li>
+            {% else %}
+            <li class="breadcrumb-item"><a href="{{ path }}">{{ name }}</a></li>
+            {% endif %}
+            {% endfor %}
+        </ol>
+    </nav>
+    {% if current_path['parent_path'] != current_path['current_path'] %}
+    <a class="ffb-icon-btn ffb-up-btn" href="{{ current_path['parent_path'] }}"
+        title="Up one level" aria-label="Up one level"><i class="bi bi-arrow-bar-up" aria-hidden="true"></i></a>
+    {% endif %}
+</div>
 {% set picker_mode = true %}
 {% include "flask_file_browser/fl_browse_table_body.html" %}
 {% include "flask_file_browser/fl_browse_table_scripts.html" %}

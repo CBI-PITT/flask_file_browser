@@ -569,6 +569,79 @@ body.ffb-embed .ffb-card {
     box-shadow: none;
 }
 
+/* Embed picker navigation strip: breadcrumbs (left) + up-one-level link (right) */
+body.ffb-embed .ffb-crumb-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    margin: 0;
+    padding: .75rem .75rem 0;
+}
+
+body.ffb-embed .ffb-crumb-row + .ffb-toolbar {
+    padding-top: .25rem;
+}
+
+body.ffb-embed .ffb-crumb-scroll {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+body.ffb-embed .ffb-crumb-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+/* Light-theme variant of the dark-navbar breadcrumb colors */
+.ffb-breadcrumb-embed {
+    --bs-breadcrumb-divider-color: var(--ffb-muted);
+    flex-wrap: nowrap;
+    margin: 0;
+    padding: .25rem;
+    font-size: .875rem;
+    white-space: nowrap;
+}
+
+.ffb-breadcrumb-embed .breadcrumb-item + .breadcrumb-item::before {
+    color: var(--ffb-muted);
+}
+
+.ffb-breadcrumb-embed .breadcrumb-item a {
+    color: var(--ffb-muted);
+    text-decoration: none;
+    transition: color .15s ease;
+}
+
+.ffb-breadcrumb-embed .breadcrumb-item a:hover,
+.ffb-breadcrumb-embed .breadcrumb-item a:focus {
+    color: var(--ffb-accent);
+}
+
+.ffb-breadcrumb-embed .breadcrumb-item.active {
+    color: var(--ffb-ink);
+    font-weight: 500;
+}
+
+.ffb-breadcrumb-embed .breadcrumb-item,
+.ffb-breadcrumb-embed .breadcrumb-item a {
+    max-width: 14rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ffb-breadcrumb-embed .ffb-crumb-home i {
+    vertical-align: -.1em;
+}
+
+.ffb-up-btn {
+    flex: 0 0 auto;
+    text-decoration: none;
+}
+
 /* ------------------------------------------------------------- responsive */
 
 @media (max-width: 575.98px) {
