@@ -19,7 +19,9 @@ from conftest import (
     make_ctx,
     read_template,
     render_embed,
+    render_embed_with_dash,
     render_full_page,
+    render_full_page_with_dash,
 )
 
 SCRIPT_TEMPLATES = [
@@ -253,3 +255,62 @@ def test_file_modal_population_elements(jinja_env):
     ):
         assert f'id="{element_id}"' in html, f"missing {element_id} in embed HTML"
         assert js_ref in js, f"modal JS no longer populates {js_ref}"
+
+
+# --------------------------------------------------------------------------
+# Data dashboard "Add to dashboard" button contracts
+# --------------------------------------------------------------------------
+
+def test_dashboard_button_renders_when_enabled(jinja_env):
+    """The Add to dashboard button renders in the file modal for both browse
+    contexts when the [dashboard] flag is on."""
+    for html in (render_embed_with_dash(jinja_env, make_ctx()),
+                 render_full_page_with_dash(jinja_env, make_ctx())):
+        assert 'id="brainModalDashboard"' in html, "Add to dashboard button missing"
+        assert "Add to dashboard" in html
+        assert "bi-bar-chart-line" in html
+        # hidden until the JS confirms the file is a .csv
+        assert 'id="brainModalDashboard" class="btn btn-sm btn-outline-primary d-none"' in html
+
+
+def test_dashboard_button_absent_when_flag_off(jinja_env):
+    """Without the [dashboard] flag the button (and its JS) must not render;
+    the brainpi buttons stay."""
+    for html in (render_embed(jinja_env, make_ctx()),
+                 render_full_page(jinja_env, make_ctx())):
+        assert 'id="brainModalDashboard"' not in html
+        assert "Add to dashboard" not in html
+    assert 'id="brainModalBrainPi"' in render_full_page(jinja_env, make_ctx())
+
+
+def test_dashboard_js_contracts():
+    """The inline JS must gate the button on .csv files, resolve the real path
+    via the existing get_file_path fetch, and POST it to the dashboard."""
+    js = read_template("fl_browse_table_scripts.html")
+    for contract in (
+        "configureDashboardButton",          # extension gating helper
+        "endsWith('.csv')",                  # CSV files only
+        "const dashboardAddUrl",             # endpoint from settings.ini
+        "{{ dashboard_add_url | tojson }}",  # jinja-injected, tojson-safe
+        "dashboardAddBtn.dataset.pathLookupUrl",
+        "JSON.stringify({ path: data.file_path })",  # POSTs the real path
+        "Added",                             # in-modal success feedback
+        "if (dashboardAddBtn)",              # button only exists when enabled
+    ):
+        assert contract in js, f"fl_browse_table_scripts.html lost dashboard contract: {contract}"
+    # the show.bs.modal handler wires the button like the brainpi one
+    assert "configureDashboardButton(\n      event.target.querySelector('#brainModalDashboard')" in js
+
+
+def test_dashboard_vars_passed_by_routes():
+    """fs_browse.py must read the [dashboard] section and pass the vars to
+    both the full-page and embed renders."""
+    fs_browse = (BROWSER_PKG / "fs_browse.py").read_text()
+    assert "settings.getboolean('dashboard', 'enabled'" in fs_browse
+    assert "settings.get('dashboard', 'add_url'" in fs_browse
+    assert fs_browse.count("dashboard_enabled=dashboard_enabled") == 2, (
+        "dashboard vars must be passed to both the full-page and embed renders")
+    assert fs_browse.count("dashboard_add_url=dashboard_add_url") == 2
+    settings_raw = (BROWSER_PKG / "settings.ini").read_text()
+    assert "[dashboard]" in settings_raw
+    assert "add_url = /dashboard/api/add_csv" in settings_raw

@@ -142,6 +142,7 @@ brainModalEl.addEventListener('show.bs.modal', function (event) {
   {% endif %}
 })
 
+{% if dashboard_enabled %}
 // "Add to dashboard" (CSV files only, dashboard blueprint required): resolve
 // the real path via the existing get_file_path fetch, then POST it to the
 // dashboard's /api/add_csv endpoint which ingests it into the storage backend.
@@ -168,7 +169,8 @@ document.getElementById("brainModalDashboard").addEventListener("click", functio
         .then(result => {
             if (!result.ok) throw new Error(result.payload.error || "Add to dashboard failed");
             const rows = result.payload.rows != null ? ' (' + result.payload.rows + ' rows)' : '';
-            dashboardAddBtn.innerHTML = '<i class="bi bi-check2 me-1"></i>Added' + rows;
+            const name = result.payload.dataset ? ' ' + result.payload.dataset : '';
+            dashboardAddBtn.innerHTML = '<i class="bi bi-check2 me-1"></i>Added' + name + rows;
             dashboardAddBtn.classList.remove('disabled');
             dashboardAddBtn.removeAttribute('aria-disabled');
         })
@@ -180,6 +182,7 @@ document.getElementById("brainModalDashboard").addEventListener("click", functio
         });
 });
 }
+{% endif %}
 
 var brainFolderModalEl = document.getElementById('brainFolderModal');
 var folderselpath = document.getElementById('brainFolderModalSelectBtn');
