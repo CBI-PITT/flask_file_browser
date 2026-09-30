@@ -14,7 +14,10 @@ import re
 import pytest
 
 from conftest import (
+    BUTTONS,
     BROWSER_PKG,
+    MODALS,
+    USER,
     assets,
     make_ctx,
     read_template,
@@ -34,6 +37,7 @@ MODAL_IDS = [
     "brainModal", "brainModalLabel", "brainModalFileSize", "brainModalUpdated",
     "brainModalFileSlug", "brainModalSelectBtn", "closeFileModalBtn",
     "brainFolderModal", "brainFolderModalText", "brainFolderModalSelectBtn",
+    "brainFolderModalNeuroglancer",
     "multiscale", "multiscaleTrigger",
 ]
 
@@ -108,6 +112,83 @@ def test_brainpi_anchors_render_when_enabled(jinja_env):
     html = render_embed(jinja_env, make_ctx())
     for element_id in ("brainModalBrainPi", "brainFolderModalBrainPi"):
         assert f'id="{element_id}"' in html, f"{element_id} missing while brainpi is enabled"
+
+
+def test_neuroglancer_anchor_in_folder_modal(jinja_env):
+    """The Neuroglancer button lives in the folder modal footer (folder-row
+    click), next to BrAinPI, only while brainpi is enabled."""
+    raw = read_template("fl_browse_table_body.html")
+    folder_at = raw.find('id="brainFolderModal"')
+    brainpi_at = raw.find('id="brainFolderModalBrainPi"')
+    ng_at = raw.find('id="brainFolderModalNeuroglancer"')
+    assert folder_at != -1 and brainpi_at != -1 and ng_at != -1, (
+        "Neuroglancer anchor missing from the folder modal"
+    )
+    assert folder_at < brainpi_at < ng_at < raw.find('id="brainFolderModalSelectBtn"'), (
+        "Neuroglancer anchor must sit in the folder modal footer, after BrAinPI"
+    )
+
+    html = render_embed(jinja_env, make_ctx())
+    assert 'id="brainFolderModalNeuroglancer"' in html
+    assert 'Neuroglancer' in html
+
+    full = render_full_page(jinja_env, make_ctx())
+    assert 'id="brainFolderModalNeuroglancer"' in full
+
+    # disabled: the anchor and its JS must both be gone
+    disabled = jinja_env.get_template("flask_file_browser/fl_browse_table_dir_embed.html").render(
+        current_path=make_ctx(), user=USER, gtag="", modals=MODALS, buttons=BUTTONS,
+        brainpi_enabled=False, brainpi_base_url="", brainpi_neuroglancer_url="")
+    assert 'id="brainFolderModalNeuroglancer"' not in disabled, (
+        "Neuroglancer anchor leaked while brainpi is disabled"
+    )
+    assert "configureBrainregNgButton" not in disabled, (
+        "Neuroglancer JS leaked while brainpi is disabled"
+    )
+
+
+def test_neuroglancer_js_contracts():
+    """The brainreg Neuroglancer flow: 'brainreg' path gate, /dir_json/ check
+    for the brainreg output contents, per-file precomputed lookup via BrAinPI,
+    and a client-side #! state with boundaries at 50% opacity. The files are
+    the BrAinPI-friendly _ng OME copies written by the brainreg operation
+    (the plain originals fail BrAinPI's TCZYXS validation)."""
+    js = read_template("fl_browse_table_scripts.html")
+    for contract in (
+        "configureBrainregNgButton",
+        "neuroglancerBaseUrl",
+        ".includes('brainreg')",
+        "replace('get_file_path', 'dir_json')",
+        "brainregNgRequiredFiles.every",
+        "brainreg.json",
+        "downsampled_ng.tif",
+        "boundaries_ng.tif",
+        "path_to_html_options",
+        "'precomputed://'",
+        "opacity = 0.5",
+        "'/#!'",
+        "encodeURIComponent(JSON.stringify(state))",
+        "get_file_path/",                                  # real-path lookup reuse
+        "layers.push",                                     # downsampled under boundaries
+    ):
+        assert contract in js, f"fl_browse_table_scripts.html lost Neuroglancer contract: {contract}"
+    # the originals must no longer be requested (they fail BrAinPI)
+    js_body = js.split("brainregNgRequiredFiles", 1)[1]
+    assert "downsampled.tiff" not in js_body and "boundaries.tiff" not in js_body, (
+        "Neuroglancer flow must request the _ng OME copies, not the plain originals"
+    )
+
+
+def test_neuroglancer_url_glue():
+    """fs_browse.py must read neuroglancer_url from settings.ini and pass it
+    to both renders (full page + embed)."""
+    fs_browse = (BROWSER_PKG / "fs_browse.py").read_text()
+    assert "neuroglancer_url" in fs_browse, "neuroglancer_url no longer read from settings"
+    assert fs_browse.count("brainpi_neuroglancer_url=brainpi_neuroglancer_url") == 2, (
+        "brainpi_neuroglancer_url must be passed to both renders"
+    )
+    settings_raw = (BROWSER_PKG / "settings.ini").read_text()
+    assert "neuroglancer_url" in settings_raw
 
 
 def test_embed_inline_js_contracts():

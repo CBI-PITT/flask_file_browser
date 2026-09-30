@@ -390,6 +390,7 @@ def initiate_browseable(extended_app,settings):
 
     brainpi_enabled = settings.getboolean('brainpi', 'enabled', fallback=False)
     brainpi_base_url = settings.get('brainpi', 'base_url').rstrip('/') if brainpi_enabled else ''
+    brainpi_neuroglancer_url = settings.get('brainpi', 'neuroglancer_url', fallback='').rstrip('/') if brainpi_enabled else ''
     
     # base entrypoint must always begin and end with '/' --> /my_entry/
     base = '/dir/'
@@ -429,7 +430,8 @@ def initiate_browseable(extended_app,settings):
                 modals=modal_templates,
                 buttons=button_templates,
                 brainpi_enabled=brainpi_enabled,
-                brainpi_base_url=brainpi_base_url
+                brainpi_base_url=brainpi_base_url,
+                brainpi_neuroglancer_url=brainpi_neuroglancer_url
             )
         else:
             return out
@@ -465,7 +467,8 @@ def initiate_browseable(extended_app,settings):
                 modals=modal_templates,
                 buttons=button_templates,
                 brainpi_enabled=brainpi_enabled,
-                brainpi_base_url=brainpi_base_url
+                brainpi_base_url=brainpi_base_url,
+                brainpi_neuroglancer_url=brainpi_neuroglancer_url
             )
         else:
             return out

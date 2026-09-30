@@ -60,7 +60,12 @@ entry runs it on its own.
 - **File modal** — Download (size-limited), Multiscale Info for `.ims` files,
   **BrAinPI** 3D-viewer link for `.tif/.tiff/.ims` and `.ome.zarr/.omehans`,
   **Add to dashboard** button for `.csv` files.
-- **Folder modal** — BrAinPI link for OME-Zarr/OMEhans volumes.
+- **Folder modal** — BrAinPI link for OME-Zarr/OMEhans volumes; **Neuroglancer**
+  button for brainreg output folders (path contains `brainreg` and the folder
+  holds `brainreg.json` + `downsampled_ng.tif` + `boundaries_ng.tif` — the
+  BrAinPI-friendly OME copies the PEACE brainreg operation writes after each
+  run): opens the BrAinPI Neuroglancer instance with downsampled_ng.tif as the
+  base layer and boundaries_ng.tif overlaid at 50% opacity.
 - **Authentication** — login page backed by LDAP/NTLM; anonymous read-only
   roots and authenticated roots are configured separately.
 
@@ -106,7 +111,7 @@ Copy `template_settings.ini` to `settings.ini` and edit. Key sections:
 | `[auth] secret_key` | Flask secret key — always change it |
 | `[auth] login_limit` | rate limit, e.g. `100/day;60/hour;10/minute` |
 | `[auth] domain_server, domain_port, domain_name` | LDAP/NTLM domain login |
-| `[brainpi] enabled, base_url` | BrAinPI 3D-viewer buttons (appends `/path_to_html_options/?path=...`) |
+| `[brainpi] enabled, base_url, neuroglancer_url` | BrAinPI 3D-viewer buttons (appends `/path_to_html_options/?path=...`); `neuroglancer_url` drives the folder-modal **Neuroglancer** button on brainreg outputs (must match BrAinPI's `[neuroglancer] url` and end with `/`) |
 | `[dashboard] enabled, add_url` | "Add to dashboard" button for `.csv` files (must match the dashboard blueprint's prefix, e.g. `/dashboard/api/add_csv`) |
 | `[GA4] gtag` | optional Google Analytics 4 tag |
 
