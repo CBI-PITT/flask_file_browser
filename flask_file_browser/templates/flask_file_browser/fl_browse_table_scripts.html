@@ -76,6 +76,62 @@ const neuroglancerBaseUrl = {{ brainpi_neuroglancer_url | tojson }};
 // (operations/brainreg/write_ng_copies.py); the originals fail in BrAinPI.
 const brainregNgRequiredFiles = ['brainreg.json', 'downsampled_ng.tif', 'boundaries_ng.tif'];
 
+const brainregNgTypedArrays = {
+    uint8: Uint8Array, int8: Int8Array,
+    uint16: Uint16Array, int16: Int16Array,
+    uint32: Uint32Array, int32: Int32Array,
+    float32: Float32Array
+};
+
+// Sample 3 z-planes of a precomputed volume through BrAinPI's chunk route and
+// return the linear 5-95% contrast window of the sampled data (null on any
+// failure so Neuroglancer keeps its own defaults for that layer).
+function brainregNgSampleRange(source) {
+    const baseUrl = String(source).replace('precomputed://', '');
+    return fetch(baseUrl + '/info')
+        .then(response => {
+            if (!response.ok) throw new Error(`info lookup failed with status ${response.status}`);
+            return response.json();
+        })
+        .then(info => {
+            const scale = info.scales[0];
+            const sizeX = scale.size[0];
+            const sizeY = scale.size[1];
+            const sizeZ = scale.size[2];
+            const TypedArray = brainregNgTypedArrays[String(info.data_type).toLowerCase()];
+            if (!TypedArray || sizeX < 1 || sizeY < 1 || sizeZ < 1) {
+                throw new Error('unsupported dtype or volume size');
+            }
+            // The chunk route slices exclusively (slice(start, stop)), so a
+            // plane at z is requested as z-(z+1) and full x/y as 0-size.
+            const sampleZs = [];
+            [0.25, 0.5, 0.75].forEach(fraction => {
+                const z = Math.min(sizeZ - 1, Math.max(0, Math.round(sizeZ * fraction)));
+                if (!sampleZs.includes(z)) sampleZs.push(z);
+            });
+            return Promise.all(sampleZs.map(z =>
+                fetch(`${baseUrl}/${scale.key}/0-${sizeX}_0-${sizeY}_${z}-${z + 1}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error(`plane fetch failed with status ${response.status}`);
+                        return response.arrayBuffer();
+                    })
+                    .then(buffer => new TypedArray(buffer))
+            )).then(planes => {
+                let min = Infinity;
+                let max = -Infinity;
+                planes.forEach(plane => {
+                    for (let i = 0; i < plane.length; i++) {
+                        const value = plane[i];
+                        if (value < min) min = value;
+                        if (value > max) max = value;
+                    }
+                });
+                if (min === Infinity) throw new Error('empty sample');
+                return [min + 0.05 * (max - min), min + 0.95 * (max - min)];
+            });
+        });
+}
+
 function configureBrainregNgButton(button, folderPath, dynamicLink) {
     button.classList.add('d-none');
     button.classList.remove('disabled');
@@ -132,11 +188,28 @@ function configureBrainregNgButton(button, folderPath, dynamicLink) {
             if (!result) return;
             if (button.dataset.dynamicLink !== dynamicLink) return;
 
+            // Sample each layer's data so the contrast can be pre-set to the
+            // linear 5-95% window of the volume; a layer that cannot be
+            // sampled keeps Neuroglancer's own defaults.
+            return Promise.all(result.layers.map(layer =>
+                brainregNgSampleRange(layer.source)
+                    .then(range => ({ layer: layer, range: range }))
+                    .catch(error => {
+                        console.error("Could not sample " + layer.name + ":", error);
+                        return { layer: layer, range: null };
+                    })
+            )).then(sampled => ({ sampled: sampled }));
+        })
+        .then(result => {
+            if (!result) return;
+            if (button.dataset.dynamicLink !== dynamicLink) return;
+
             // Neuroglancer renders the first layer at the bottom and later
             // layers on top: downsampled_ng.tif under boundaries_ng.tif.
-            const state = { layers: [], layout: { type: 'xy' } };
-            result.layers.forEach(layer => {
+            const state = { layers: [], layout: '4panel-alt' };
+            result.sampled.forEach(({layer, range}) => {
                 const ngLayer = { type: 'image', source: layer.source, name: layer.name };
+                if (range) ngLayer.shaderControls = { normalized: { range: range } };
                 if (layer.name === 'boundaries_ng.tif') ngLayer.opacity = 0.5;
                 state.layers.push(ngLayer);
             });

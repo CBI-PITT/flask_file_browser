@@ -64,8 +64,11 @@ entry runs it on its own.
   button for brainreg output folders (path contains `brainreg` and the folder
   holds `brainreg.json` + `downsampled_ng.tif` + `boundaries_ng.tif` — the
   BrAinPI-friendly OME copies the PEACE brainreg operation writes after each
-  run): opens the BrAinPI Neuroglancer instance with downsampled_ng.tif as the
-  base layer and boundaries_ng.tif overlaid at 50% opacity.
+  run): opens the BrAinPI Neuroglancer instance in the `4panel-alt` layout
+  (3 orthogonal views + 3D) with downsampled_ng.tif as the base layer and
+  boundaries_ng.tif overlaid at 50% opacity. Both layers open with their
+  contrast pre-set to the linear 5-95% window, estimated by sampling three
+  z-planes of each volume through BrAinPI's precomputed chunk route.
 - **Authentication** — login page backed by LDAP/NTLM; anonymous read-only
   roots and authenticated roots are configured separately.
 

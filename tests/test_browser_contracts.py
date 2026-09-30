@@ -170,12 +170,22 @@ def test_neuroglancer_js_contracts():
         "encodeURIComponent(JSON.stringify(state))",
         "get_file_path/",                                  # real-path lookup reuse
         "layers.push",                                     # downsampled under boundaries
+        "brainregNgSampleRange",                           # per-layer data sampling
+        "brainregNgTypedArrays",                           # dtype -> TypedArray map
+        "'/info'",                                         # precomputed info lookup
+        "response.arrayBuffer()",                          # raw plane decode
+        "0-${sizeX}_0-${sizeY}_${z}-${z + 1}",             # chunk route (exclusive stop)
+        "normalized: { range: range }",                    # pre-set 5-95% contrast
+        "'4panel-alt'",                                    # 3 orthogonal views + 3D
     ):
         assert contract in js, f"fl_browse_table_scripts.html lost Neuroglancer contract: {contract}"
     # the originals must no longer be requested (they fail BrAinPI)
     js_body = js.split("brainregNgRequiredFiles", 1)[1]
     assert "downsampled.tiff" not in js_body and "boundaries.tiff" not in js_body, (
         "Neuroglancer flow must request the _ng OME copies, not the plain originals"
+    )
+    assert "{ type: 'xy' }" not in js_body, (
+        "the brainreg viewer must open in the 4panel-alt layout"
     )
 
 
