@@ -231,6 +231,24 @@ function configureBrainregNgButton(button, folderPath, dynamicLink) {
 }
 {% endif %}
 
+{% if dashboard_enabled %}
+const dashboardAddUrl = {{ dashboard_add_url | tojson }};
+var dashboardAddBtn = document.getElementById('brainModalDashboard');
+
+function configureDashboardButton(button, itemName, pathLookupUrl) {
+    button.classList.add('d-none');
+    button.classList.remove('disabled');
+    button.removeAttribute('aria-disabled');
+    button.dataset.pathLookupUrl = pathLookupUrl || '';
+
+    const normalizedName = String(itemName || '').toLowerCase();
+    if (!pathLookupUrl || !normalizedName.endsWith('.csv')) {
+        return;
+    }
+    button.classList.remove('d-none');
+}
+{% endif %}
+
 var brainModalEl = document.getElementById('brainModal');
 var selpath = document.getElementById('brainModalSelectBtn');
 
@@ -275,7 +293,56 @@ brainModalEl.addEventListener('show.bs.modal', function (event) {
       ['.tif', '.tiff', '.ims']
   );
   {% endif %}
+  {% if dashboard_enabled %}
+  configureDashboardButton(
+      event.target.querySelector('#brainModalDashboard'),
+      fdata.files_name,
+      dynamicLink
+  );
+  {% endif %}
 })
+
+{% if dashboard_enabled %}
+// "Add to dashboard" (CSV files only, dashboard blueprint required): resolve
+// the real path via the existing get_file_path fetch, then POST it to the
+// dashboard's /api/add_csv endpoint which ingests it into the storage backend.
+if (dashboardAddBtn) {
+document.getElementById("brainModalDashboard").addEventListener("click", function () {
+    const lookupUrl = dashboardAddBtn.dataset.pathLookupUrl;
+    if (!lookupUrl) return;
+    dashboardAddBtn.classList.add('disabled');
+    dashboardAddBtn.setAttribute('aria-disabled', 'true');
+    fetch(lookupUrl)
+        .then(response => {
+            if (!response.ok) throw new Error(`Path lookup failed with status ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            if (!data.file_path) throw new Error("File path missing");
+            return fetch(dashboardAddUrl, {
+                headers: { "Content-Type": "application/json" },
+                method: "POST",
+                body: JSON.stringify({ path: data.file_path })
+            });
+        })
+        .then(response => response.json().then(payload => ({ ok: response.ok, payload: payload })))
+        .then(result => {
+            if (!result.ok) throw new Error(result.payload.error || "Add to dashboard failed");
+            const rows = result.payload.rows != null ? ' (' + result.payload.rows + ' rows)' : '';
+            const name = result.payload.dataset ? ' ' + result.payload.dataset : '';
+            dashboardAddBtn.innerHTML = '<i class="bi bi-check2 me-1"></i>Added' + name + rows;
+            dashboardAddBtn.classList.remove('disabled');
+            dashboardAddBtn.removeAttribute('aria-disabled');
+        })
+        .catch(error => {
+            dashboardAddBtn.classList.remove('disabled');
+            dashboardAddBtn.removeAttribute('aria-disabled');
+            console.error("Add to dashboard failed:", error);
+            alert("Add to dashboard failed: " + error.message);
+        });
+});
+}
+{% endif %}
 
 var brainFolderModalEl = document.getElementById('brainFolderModal');
 var folderselpath = document.getElementById('brainFolderModalSelectBtn');

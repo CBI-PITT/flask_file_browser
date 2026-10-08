@@ -390,6 +390,13 @@ def initiate_browseable(extended_app,settings):
 
     brainpi_enabled = settings.getboolean('brainpi', 'enabled', fallback=False)
     brainpi_base_url = settings.get('brainpi', 'base_url').rstrip('/') if brainpi_enabled else ''
+    dashboard_enabled = settings.getboolean('dashboard', 'enabled', fallback=False)
+    dashboard_add_url = ''
+    if dashboard_enabled:
+        dashboard_add_url = (
+            settings.get('dashboard', 'add_url', fallback='/dashboard/api/add_csv').strip()
+            or '/dashboard/api/add_csv'
+        )
     brainpi_neuroglancer_url = settings.get('brainpi', 'neuroglancer_url', fallback='').rstrip('/') if brainpi_enabled else ''
     
     # base entrypoint must always begin and end with '/' --> /my_entry/
@@ -431,6 +438,8 @@ def initiate_browseable(extended_app,settings):
                 buttons=button_templates,
                 brainpi_enabled=brainpi_enabled,
                 brainpi_base_url=brainpi_base_url,
+                dashboard_enabled=dashboard_enabled,
+                dashboard_add_url=dashboard_add_url
                 brainpi_neuroglancer_url=brainpi_neuroglancer_url
             )
         else:
@@ -468,6 +477,8 @@ def initiate_browseable(extended_app,settings):
                 buttons=button_templates,
                 brainpi_enabled=brainpi_enabled,
                 brainpi_base_url=brainpi_base_url,
+                dashboard_enabled=dashboard_enabled,
+                dashboard_add_url=dashboard_add_url
                 brainpi_neuroglancer_url=brainpi_neuroglancer_url
             )
         else:

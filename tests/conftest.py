@@ -20,6 +20,7 @@ MODALS = ["flask_file_browser/modals/multiscale.html"]
 BUTTONS = ["flask_file_browser/triggers/multiscale_trigger.html"]
 
 NOW = "2026-09-23 17:00"
+DASH = {"dashboard_enabled": True, "dashboard_add_url": "/dashboard/api/add_csv"}
 BRAINPI = {
     "brainpi_enabled": True,
     "brainpi_base_url": "https://brain-api.cbi.pitt.edu",
@@ -107,6 +108,16 @@ def render_embed(env, ctx):
 def render_full_page(env, ctx):
     return env.get_template("flask_file_browser/fl_browse_table_dir.html").render(
         current_path=ctx, user=USER, gtag="", modals=MODALS, buttons=BUTTONS, **BRAINPI)
+
+
+def render_embed_with_dash(env, ctx):
+    return env.get_template("flask_file_browser/fl_browse_table_dir_embed.html").render(
+        current_path=ctx, user=USER, gtag="", modals=MODALS, buttons=BUTTONS, **BRAINPI, **DASH)
+
+
+def render_full_page_with_dash(env, ctx):
+    return env.get_template("flask_file_browser/fl_browse_table_dir.html").render(
+        current_path=ctx, user=USER, gtag="", modals=MODALS, buttons=BUTTONS, **BRAINPI, **DASH)
 
 
 def assets(html):
