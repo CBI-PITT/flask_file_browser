@@ -69,6 +69,166 @@ function configureBrainPiButton(button, itemName, pathLookupUrl, supportedSuffix
             console.error("Failed to build BrAinPI link:", error);
         });
 }
+
+const neuroglancerBaseUrl = {{ brainpi_neuroglancer_url | tojson }};
+
+// BrAinPI-friendly OME copies written by the PEACE brainreg operation
+// (operations/brainreg/write_ng_copies.py); the originals fail in BrAinPI.
+const brainregNgRequiredFiles = ['brainreg.json', 'downsampled_ng.tif', 'boundaries_ng.tif'];
+
+const brainregNgTypedArrays = {
+    uint8: Uint8Array, int8: Int8Array,
+    uint16: Uint16Array, int16: Int16Array,
+    uint32: Uint32Array, int32: Int32Array,
+    float32: Float32Array
+};
+
+// Sample 3 z-planes of a precomputed volume through BrAinPI's chunk route and
+// return the linear 5-95% contrast window of the sampled data (null on any
+// failure so Neuroglancer keeps its own defaults for that layer).
+function brainregNgSampleRange(source) {
+    const baseUrl = String(source).replace('precomputed://', '');
+    return fetch(baseUrl + '/info')
+        .then(response => {
+            if (!response.ok) throw new Error(`info lookup failed with status ${response.status}`);
+            return response.json();
+        })
+        .then(info => {
+            const scale = info.scales[0];
+            const sizeX = scale.size[0];
+            const sizeY = scale.size[1];
+            const sizeZ = scale.size[2];
+            const TypedArray = brainregNgTypedArrays[String(info.data_type).toLowerCase()];
+            if (!TypedArray || sizeX < 1 || sizeY < 1 || sizeZ < 1) {
+                throw new Error('unsupported dtype or volume size');
+            }
+            // The chunk route slices exclusively (slice(start, stop)), so a
+            // plane at z is requested as z-(z+1) and full x/y as 0-size.
+            const sampleZs = [];
+            [0.25, 0.5, 0.75].forEach(fraction => {
+                const z = Math.min(sizeZ - 1, Math.max(0, Math.round(sizeZ * fraction)));
+                if (!sampleZs.includes(z)) sampleZs.push(z);
+            });
+            return Promise.all(sampleZs.map(z =>
+                fetch(`${baseUrl}/${scale.key}/0-${sizeX}_0-${sizeY}_${z}-${z + 1}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error(`plane fetch failed with status ${response.status}`);
+                        return response.arrayBuffer();
+                    })
+                    .then(buffer => new TypedArray(buffer))
+            )).then(planes => {
+                let min = Infinity;
+                let max = -Infinity;
+                planes.forEach(plane => {
+                    for (let i = 0; i < plane.length; i++) {
+                        const value = plane[i];
+                        if (value < min) min = value;
+                        if (value > max) max = value;
+                    }
+                });
+                if (min === Infinity) throw new Error('empty sample');
+                return [min + 0.05 * (max - min), min + 0.95 * (max - min)];
+            });
+        });
+}
+
+function configureBrainregNgButton(button, folderPath, dynamicLink) {
+    button.classList.add('d-none');
+    button.classList.remove('disabled');
+    button.removeAttribute('href');
+    button.removeAttribute('aria-disabled');
+    button.dataset.dynamicLink = dynamicLink || '';
+
+    // A brainreg output is identified by 'brainreg' anywhere in the folder
+    // path; the folder contents are verified against /dir_json/ below.
+    const normalizedName = String(folderPath || '').toLowerCase();
+    if (!neuroglancerBaseUrl || !dynamicLink || !normalizedName.includes('brainreg')) {
+        return;
+    }
+
+    button.classList.remove('d-none');
+    button.classList.add('disabled');
+    button.setAttribute('aria-disabled', 'true');
+
+    fetch(dynamicLink.replace('get_file_path', 'dir_json'))
+        .then(response => {
+            if (!response.ok) throw new Error(`Directory check failed with status ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            if (button.dataset.dynamicLink !== dynamicLink) return;
+            const names = (data.files_name || []).map(name => String(name).toLowerCase());
+            if (!brainregNgRequiredFiles.every(name => names.includes(name))) return;
+
+            return fetch(dynamicLink)
+                .then(response => {
+                    if (!response.ok) throw new Error(`Path lookup failed with status ${response.status}`);
+                    return response.json();
+                });
+        })
+        .then(data => {
+            if (!data) return;
+            if (button.dataset.dynamicLink !== dynamicLink) return;
+            if (!data.file_path) throw new Error("File path missing");
+
+            const folderRealPath = data.file_path.replace(/\/+$/, '');
+            return Promise.all(brainregNgRequiredFiles.slice(1).map(name =>
+                fetch(brainPiBaseUrl + '/path_to_html_options/?path=' + encodeURIComponent(folderRealPath + '/' + name))
+                    .then(response => {
+                        if (!response.ok) throw new Error(`BrAinPI lookup failed with status ${response.status}`);
+                        return response.json();
+                    })
+                    .then(options => {
+                        if (!options.neuroglancer) throw new Error("No neuroglancer link for " + name);
+                        return { name: name, source: 'precomputed://' + options.neuroglancer };
+                    })
+            )).then(layers => ({ layers: layers }));
+        })
+        .then(result => {
+            if (!result) return;
+            if (button.dataset.dynamicLink !== dynamicLink) return;
+
+            // Sample each layer's data so the contrast can be pre-set to the
+            // linear 5-95% window of the volume; a layer that cannot be
+            // sampled keeps Neuroglancer's own defaults.
+            return Promise.all(result.layers.map(layer =>
+                brainregNgSampleRange(layer.source)
+                    .then(range => ({ layer: layer, range: range }))
+                    .catch(error => {
+                        console.error("Could not sample " + layer.name + ":", error);
+                        return { layer: layer, range: null };
+                    })
+            )).then(sampled => ({ sampled: sampled }));
+        })
+        .then(result => {
+            if (!result) return;
+            if (button.dataset.dynamicLink !== dynamicLink) return;
+
+            // Neuroglancer renders the first layer at the bottom and later
+            // layers on top: downsampled_ng.tif under boundaries_ng.tif.
+            const state = { layers: [], layout: '4panel-alt' };
+            result.sampled.forEach(({layer, range}) => {
+                const ngLayer = { type: 'image', source: layer.source, name: layer.name };
+                if (range) ngLayer.shaderControls = { normalized: { range: range } };
+                if (layer.name === 'boundaries_ng.tif') ngLayer.opacity = 0.5;
+                state.layers.push(ngLayer);
+            });
+
+            button.setAttribute(
+                'href',
+                neuroglancerBaseUrl + '/#!' + encodeURIComponent(JSON.stringify(state))
+            );
+            button.classList.remove('disabled');
+            button.removeAttribute('aria-disabled');
+        })
+        .catch(error => {
+            if (button.dataset.dynamicLink !== dynamicLink) return;
+            button.classList.add('d-none');
+            button.classList.remove('disabled');
+            button.removeAttribute('aria-disabled');
+            console.error("Failed to build Neuroglancer link:", error);
+        });
+}
 {% endif %}
 
 var brainModalEl = document.getElementById('brainModal');
@@ -136,6 +296,11 @@ brainFolderModalEl.addEventListener('show.bs.modal', function (event) {
       parts[parts.length - 1],
       dynamicLink,
       ['.ome.zarr', '.omehans']
+  );
+  configureBrainregNgButton(
+      event.target.querySelector('#brainFolderModalNeuroglancer'),
+      fdata,
+      dynamicLink
   );
   {% endif %}
 });
