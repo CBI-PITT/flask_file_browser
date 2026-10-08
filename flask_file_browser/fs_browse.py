@@ -439,7 +439,7 @@ def initiate_browseable(extended_app,settings):
                 brainpi_enabled=brainpi_enabled,
                 brainpi_base_url=brainpi_base_url,
                 dashboard_enabled=dashboard_enabled,
-                dashboard_add_url=dashboard_add_url
+                dashboard_add_url=dashboard_add_url,
                 brainpi_neuroglancer_url=brainpi_neuroglancer_url
             )
         else:
@@ -478,7 +478,7 @@ def initiate_browseable(extended_app,settings):
                 brainpi_enabled=brainpi_enabled,
                 brainpi_base_url=brainpi_base_url,
                 dashboard_enabled=dashboard_enabled,
-                dashboard_add_url=dashboard_add_url
+                dashboard_add_url=dashboard_add_url,
                 brainpi_neuroglancer_url=brainpi_neuroglancer_url
             )
         else:
