@@ -20,8 +20,12 @@ MODALS = ["flask_file_browser/modals/multiscale.html"]
 BUTTONS = ["flask_file_browser/triggers/multiscale_trigger.html"]
 
 NOW = "2026-09-23 17:00"
-BRAINPI = {"brainpi_enabled": True, "brainpi_base_url": "https://brain-api.cbi.pitt.edu"}
 DASH = {"dashboard_enabled": True, "dashboard_add_url": "/dashboard/api/add_csv"}
+BRAINPI = {
+    "brainpi_enabled": True,
+    "brainpi_base_url": "https://brain-api.cbi.pitt.edu",
+    "brainpi_neuroglancer_url": "https://neuroglancer.example.com/v/base/",
+}
 USER = {"is_authenticated": True, "id": "iana"}
 
 
