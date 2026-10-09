@@ -468,6 +468,9 @@ def initiate_browseable(extended_app,settings):
             ]
 
             page_description, current_path = out[1:]
+            # ?picker=0 hides the dead-end Select File/Folder buttons for
+            # hosts that do not listen for the picker postMessage (dashboard).
+            picker_hidden = request.args.get('picker', '') == '0'
             return render_template(
                 'flask_file_browser/fl_browse_table_dir_embed.html',
                 current_path={**page_description, **current_path},
@@ -479,7 +482,8 @@ def initiate_browseable(extended_app,settings):
                 brainpi_base_url=brainpi_base_url,
                 dashboard_enabled=dashboard_enabled,
                 dashboard_add_url=dashboard_add_url,
-                brainpi_neuroglancer_url=brainpi_neuroglancer_url
+                brainpi_neuroglancer_url=brainpi_neuroglancer_url,
+                picker_hidden=picker_hidden
             )
         else:
             return out

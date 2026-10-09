@@ -43,7 +43,7 @@
                     <td data-order="0">
                         <div class="d-flex align-items-center gap-2 min-w-0">
                             <i class="bi bi-folder-fill ffb-file-icon ffb-icon-dir" aria-hidden="true"></i>
-                            <a class="ffb-name-link text-truncate" href="{{ dir }}">{{ current_path['dirs_name'][loop.index0] }}</a>
+                            <a class="ffb-name-link text-truncate" href="{{ dir }}{{ picker_qs | default('') }}">{{ current_path['dirs_name'][loop.index0] }}</a>
                         </div>
                     </td>
                     <td class="ffb-cell-muted">{{ current_path['dirs_modtime'][loop.index0] }}</td>
