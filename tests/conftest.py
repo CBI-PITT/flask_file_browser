@@ -21,6 +21,7 @@ BUTTONS = ["flask_file_browser/triggers/multiscale_trigger.html"]
 
 NOW = "2026-09-23 17:00"
 DASH = {"dashboard_enabled": True, "dashboard_add_url": "/dashboard/api/add_csv"}
+PICKER_HIDDEN = {"picker_hidden": True}
 BRAINPI = {
     "brainpi_enabled": True,
     "brainpi_base_url": "https://brain-api.cbi.pitt.edu",
@@ -103,6 +104,14 @@ def make_ctx(base="dir", root=False):
 def render_embed(env, ctx):
     return env.get_template("flask_file_browser/fl_browse_table_dir_embed.html").render(
         current_path=ctx, user=USER, gtag="", modals=MODALS, buttons=BUTTONS, **BRAINPI)
+
+
+def render_embed_picker_hidden(env, ctx):
+    """Embed render as served for ?picker=0 (dashboard picker): Select
+    File/Folder buttons hidden, links carry the flag."""
+    return env.get_template("flask_file_browser/fl_browse_table_dir_embed.html").render(
+        current_path=ctx, user=USER, gtag="", modals=MODALS, buttons=BUTTONS,
+        **BRAINPI, **DASH, **PICKER_HIDDEN)
 
 
 def render_full_page(env, ctx):

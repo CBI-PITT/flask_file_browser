@@ -22,6 +22,7 @@ from conftest import (
     make_ctx,
     read_template,
     render_embed,
+    render_embed_picker_hidden,
     render_embed_with_dash,
     render_full_page,
     render_full_page_with_dash,
@@ -405,3 +406,116 @@ def test_dashboard_vars_passed_by_routes():
     settings_raw = (BROWSER_PKG / "settings.ini").read_text()
     assert "[dashboard]" in settings_raw
     assert "add_url = /dashboard/api/add_csv" in settings_raw
+
+
+# --------------------------------------------------------------------------
+# Dashboard picker mode (?picker=0) contracts
+# --------------------------------------------------------------------------
+
+def test_picker_hidden_embed_hides_select_buttons(jinja_env):
+    """The ?picker=0 embed (dashboard picker) hides the dead-end Select
+    File/Folder buttons but keeps the file-modal actions working."""
+    html = render_embed_picker_hidden(jinja_env, make_ctx(base="dir_embed"))
+    for element_id in ("brainModalSelectBtn", "brainFolderModalSelectBtn"):
+        assert f'id="{element_id}"' not in html, f"{element_id} must not render in ?picker=0 mode"
+    assert "Select File" not in html and "Select Folder" not in html
+    # the rest of the modal stays useful without the picker host
+    for element_id in ("brainModalFileSlug", "brainModalDashboard", "brainModalBrainPi"):
+        assert f'id="{element_id}"' in html, f"{element_id} must survive ?picker=0 mode"
+
+
+def test_picker_hidden_links_carry_flag(jinja_env):
+    """In ?picker=0 mode the in-iframe navigation links (breadcrumbs, up link,
+    folder names) must carry ?picker=0 so the flag survives navigation."""
+    html = render_embed_picker_hidden(jinja_env, make_ctx(base="dir_embed"))
+    assert 'href="/browser/dir_embed/world?picker=0"' in html, (
+        "ancestor crumb must carry the picker flag"
+    )
+    up_at = html.find("ffb-up-btn")
+    assert up_at != -1 and 'href="/browser/dir_embed/world?picker=0"' in html[up_at:], (
+        "up link must carry the picker flag"
+    )
+    assert '<a class="ffb-name-link text-truncate" href="/browser/dir_embed/world/sub/iana?picker=0">' in html, (
+        "folder name links must carry the picker flag"
+    )
+
+
+def test_default_embed_unchanged_by_picker_flag(jinja_env):
+    """Without ?picker=0 (PEACE form picker, full page) nothing changes: the
+    Select buttons stay and no picker flag may leak into links."""
+    embed = render_embed(jinja_env, make_ctx(base="dir_embed"))
+    for element_id in ("brainModalSelectBtn", "brainFolderModalSelectBtn"):
+        assert f'id="{element_id}"' in embed, f"{element_id} missing in default picker mode"
+    assert "?picker=0" not in embed, "picker flag must not leak into the default embed render"
+
+    full = render_full_page(jinja_env, make_ctx(base="dir"))
+    assert "?picker=0" not in full, "picker flag must not leak into the full-page render"
+    assert 'id="brainModalSelectBtn"' not in full
+
+
+def test_picker_hidden_js_free_of_select_handlers(jinja_env):
+    """The scripts partial must attach no Select handlers when the buttons
+    are absent (null guards), in both modes."""
+    js = read_template("fl_browse_table_scripts.html")
+    assert "if (selpath)" in js
+    assert "if (folderselpath)" in js
+    # the picker flag is route-driven, not JS-driven
+    assert "picker_hidden" not in js
+
+
+def test_picker_hidden_passed_by_route():
+    """fs_browse.py must read ?picker=0 and pass picker_hidden to the embed
+    render only (the full page has no picker concept)."""
+    fs_browse = (BROWSER_PKG / "fs_browse.py").read_text()
+    assert "request.args.get('picker', '') == '0'" in fs_browse, (
+        "embed route must read the ?picker=0 flag"
+    )
+    assert fs_browse.count("picker_hidden=picker_hidden") == 1, (
+        "picker_hidden must be passed to the embed render only"
+    )
+    # positional: the pass must sit inside the embed render call, after the
+    # flag is read (a full-page call would NameError at request time)
+    embed_tpl_at = fs_browse.find("'flask_file_browser/fl_browse_table_dir_embed.html'")
+    read_at = fs_browse.find("request.args.get('picker', '') == '0'")
+    pass_at = fs_browse.find("picker_hidden=picker_hidden")
+    assert -1 not in (embed_tpl_at, read_at, pass_at)
+    assert read_at < pass_at, "picker_hidden must be read before it is passed"
+    assert embed_tpl_at < pass_at, "picker_hidden must be passed to the embed render"
+    assert fs_browse.find("picker_hidden=picker_hidden", pass_at + 1) == -1, (
+        "picker_hidden must not be passed to the full-page render"
+    )
+    embed_tpl = read_template("fl_browse_table_dir_embed.html")
+    assert "picker_mode = not (picker_hidden | default(false))" in embed_tpl, (
+        "embed template must derive picker_mode from picker_hidden"
+    )
+    body_tpl = read_template("fl_browse_table_body.html")
+    assert "picker_qs | default('')" in body_tpl, (
+        "folder links must keep the picker flag undefined-safe"
+    )
+
+
+def test_live_routes_render_with_picker_flag(security_client, security_login):
+    """Live end-to-end: the full page and both embed variants render through
+    the real blueprint, with the picker flag applied only to ?picker=0."""
+    security_login()
+    full = security_client.get("/browser/dir/")
+    assert full.status_code == 200, "full-page browser render broke"
+    assert 'id="brainModalSelectBtn"' not in full.get_data(as_text=True), (
+        "full page must never render Select buttons"
+    )
+    assert "?picker=0" not in full.get_data(as_text=True), (
+        "picker flag must not leak onto the full page"
+    )
+
+    embed_default = security_client.get("/browser/dir_embed/")
+    assert embed_default.status_code == 200, "default embed render broke"
+    assert 'id="brainModalSelectBtn"' in embed_default.get_data(as_text=True), (
+        "default embed (PEACE picker) must keep the Select buttons"
+    )
+    assert "?picker=0" not in embed_default.get_data(as_text=True)
+
+    embed_hidden = security_client.get("/browser/dir_embed/?picker=0")
+    assert embed_hidden.status_code == 200, "?picker=0 embed render broke"
+    html = embed_hidden.get_data(as_text=True)
+    assert 'id="brainModalSelectBtn"' not in html, "Select buttons must hide with ?picker=0"
+    assert "?picker=0" in html, "?picker=0 embed links must carry the flag"
